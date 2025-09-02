@@ -35,6 +35,8 @@ update-changelog:
   image: "python:3.12"
   only:
     - master
+  variables:
+    GH_TOKEN: $GH_TOKEN
   before_script:
     # Configuration SSH
     - apt-get update && apt-get install -y git openssh-client
@@ -69,7 +71,10 @@ update-changelog:
         echo 'version_variable = config/__init__.py:__version__' >> setup.cfg
         echo 'branch = master' >> setup.cfg
         echo 'changelog_file = CHANGELOG.md' >> setup.cfg
+        echo 'github_repo = recovr_software' >> setup.cfg
+        echo 'github_user = stan-kempachi' >> setup.cfg
       fi
+
 
     # Détecter si des changements conséquents ont été faits
     - |
