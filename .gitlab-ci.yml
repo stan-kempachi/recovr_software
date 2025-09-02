@@ -137,22 +137,19 @@ sync-to-github:
     - |
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
-      echo "$CI_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      ssh-add ~/.ssh/id_rsa
-      ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
+      # Utiliser la clé SSH spécifique pour GitHub
+      echo "$GITHUB_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_github
+      chmod 600 ~/.ssh/id_rsa_github
+      ssh-add ~/.ssh/id_rsa_github
+      # Ajouter GitHub aux hôtes connus
       ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-  script:
-    # Configuration Git
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
-
-    # Utilisation de SSH au lieu de HTTPS pour GitHub
-    - git remote add github git@github.com:stan-kempachi/recovr_software.git
-
-    # Push vers GitHub avec la branche master
+    # Ajouter GitHub comme remote ou mettre à jour s'il existe déjà
+    - git remote add github git@github.com:stan-kempachi/recovr_software.git || git remote set-url github git@github.com:stan-kempachi/recovr_software.git
+  script:
+    # Pousser vers GitHub
     - git push github HEAD:master
-    - git push github --tags  # Pour synchroniser aussi les tags
 
 
 ## Deploy stage (pour le déploiement futur)
