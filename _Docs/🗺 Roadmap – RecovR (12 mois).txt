@@ -1,0 +1,71 @@
+🗺 Roadmap – RecovR (12 mois)
+Phase 1 – Conception & MVP (M0 à M3)
+●	M0 (Semaine 1 à 2)
+
+○	Finalisation du cahier des charges et des spécifications techniques.
+
+○	Création des maquettes UX/UI.
+
+●	M1 à M2
+
+○	Développement back-end (authentification, intégrations API Chorus Pro & Ariba).
+
+○	Développement front-end (dashboard basique, tableaux).
+
+○	Mise en place du système d’alertes et reporting simple.
+
+●	M3
+
+○	Tests fonctionnels et correctifs.
+
+○	Mise en production version MVP.
+
+________________________________________
+Phase 2 – Extension des intégrations (M4 à M5)
+●	Ajout de nouvelles plateformes (SAP Business Network, Tradeshift).
+
+●	Optimisation des performances API.
+
+●	Amélioration ergonomie du dashboard.
+
+________________________________________
+Phase 3 – Intelligence et Reporting avancé (M6 à M8)
+●	M6 :
+
+○	IA pour détection d’anomalies (retards, factures incomplètes).
+
+●	M7-M8 :
+
+○	Reporting avancé avec graphiques interactifs, filtres et export automatisé.
+
+________________________________________
+Phase 4 – API & Recouvrement actif (M9 à M10)
+●	M9 :
+
+○	Développement API ouverte pour intégration avec ERP tiers (Sage, SAP, Oracle).
+
+●	M10 :
+
+○	Module de recouvrement actif (lettres et emails automatiques de relance).
+
+________________________________________
+Phase 5 – Scalabilité & mobilité (M11 à M12)
+●	M11 :
+
+○	Gestion multi-clients pour cabinets comptables et prestataires.
+
+●	M12 :
+
+○	Version mobile optimisée (PWA) pour suivi nomade.
+
+
+Mois	0	1	2	3	4	5	6	7	8	9	10	11	12
+Spécifications & Maquettes	█	█											
+Dev MVP		█	█	█									
+Intégrations API		█	█	█	█	█							
+IA & Reporting avancé							█	█	█				
+API ouverte										█			
+Recouvrement actif											█		
+Multi-clients												█	
+Version mobile (PWA)													█
+

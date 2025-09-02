@@ -1,0 +1,57 @@
+stages:
+  - lint
+  - test
+  - deploy
+
+# Lint stage
+lint:
+  stage: lint
+  image: "python:3.12"
+  before_script:
+    - pip install poetry
+  script:
+    - poetry install
+    
+    - poetry run black --check .
+    
+    
+    - poetry run ruff .
+    
+    
+    - poetry run isort --check-only .
+    
+
+# Test stage
+test:
+  stage: test
+  image: "python:3.12"
+  before_script:
+    - pip install poetry
+  script:
+    - poetry install
+    
+    - poetry run pytest
+    
+
+# Deploy stage (for android server deployment)
+deploy:
+  stage: deploy
+  image: "alpine:latest"  # Image Alpine légère avec support SSH
+  before_script:
+    # Installation de SSH et configuration de la clé privée
+    - apk add --no-cache openssh
+    - mkdir -p ~/.ssh
+    # Utilisation de la clé privée définie dans les variables GitLab CI/CD
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    # Ajout de l'hôte à la liste des known_hosts pour éviter les soucis d'authentification
+    - ssh-keyscan -H "$SERVER_SSH_HOST" >> ~/.ssh/known_hosts
+  script:
+    - echo "Déploiement sur le serveur $SERVER_SSH_HOST, utilisateur : $SERVER_SSH_USER"
+    
+    # Commandes pour Django
+    - scp -P $SERVER_SSH_PORT -r . $SERVER_SSH_USER@$SERVER_SSH_HOST:$DEPLOY_PATH
+    - ssh -p $SERVER_SSH_PORT $SERVER_SSH_USER@$SERVER_SSH_HOST "cd $DEPLOY_PATH && docker build -t django-account . && docker run -d -p 8000:8000 django-account"
+    
+  only:
+    - main  # Déployer uniquement sur la branche `main`.
