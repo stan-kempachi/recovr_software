@@ -31,28 +31,26 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     # Applications RecovR
-    'accounts',
-    'api_connectors',
-    'compliance',
-    'core',
-    'dashboard',
-    'invoices',
-    'notifications',
-    'reporting',
-    'recovr_software',
-    'tests',
-
+    "accounts",
+    "api_connectors",
+    "compliance",
+    "core",
+    "dashboard",
+    "invoices",
+    "notifications",
+    "reporting",
+    "recovr_software",
+    "tests",
     # Dépendances tierces
-    'rest_framework',
-    'corsheaders',
+    "rest_framework",
+    "corsheaders",
     # Autres dépendances selon besoins
 ]
 
@@ -140,4 +138,4 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Spécifie le modèle utilisateur personnalisé
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = "accounts.User"
