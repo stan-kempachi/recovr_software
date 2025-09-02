@@ -52,7 +52,8 @@ update-changelog:
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
     - git checkout -B master
-
+    # Configurer l'URL du dépôt en utilisant SSH au lieu de HTTPS
+    - git remote set-url origin git@gitlab.com:django1361117/recovr_software.git
   script:
     # Vérifier si config/__init__.py existe, sinon le créer
     - |
