@@ -1,7 +1,9 @@
 stages:
   - lint
   - test
-  - deploy
+  - changelog
+  - sync
+#  - deploy
 
 # Lint stage
 lint:
@@ -11,15 +13,10 @@ lint:
     - pip install poetry
   script:
     - poetry install
-    
     - poetry run black --check .
-    
-    
     - poetry run ruff .
-    
-    
     - poetry run isort --check-only .
-    
+
 
 # Test stage
 test:
@@ -29,29 +26,116 @@ test:
     - pip install poetry
   script:
     - poetry install
-    
     - poetry run pytest
-    
 
-# Deploy stage (for android server deployment)
-deploy:
-  stage: deploy
-  image: "alpine:latest"  # Image Alpine légère avec support SSH
-  before_script:
-    # Installation de SSH et configuration de la clé privée
-    - apk add --no-cache openssh
-    - mkdir -p ~/.ssh
-    # Utilisation de la clé privée définie dans les variables GitLab CI/CD
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    # Ajout de l'hôte à la liste des known_hosts pour éviter les soucis d'authentification
-    - ssh-keyscan -H "$SERVER_SSH_HOST" >> ~/.ssh/known_hosts
-  script:
-    - echo "Déploiement sur le serveur $SERVER_SSH_HOST, utilisateur : $SERVER_SSH_USER"
-    
-    # Commandes pour Django
-    - scp -P $SERVER_SSH_PORT -r . $SERVER_SSH_USER@$SERVER_SSH_HOST:$DEPLOY_PATH
-    - ssh -p $SERVER_SSH_PORT $SERVER_SSH_USER@$SERVER_SSH_HOST "cd $DEPLOY_PATH && docker build -t django-account . && docker run -d -p 8000:8000 django-account"
-    
+
+# Update changelog stage
+update-changelog:
+  stage: changelog
+  image: "python:3.12"
   only:
-    - main  # Déployer uniquement sur la branche `main`.
+    - master
+  before_script:
+    # Configuration SSH
+    - apt-get update && apt-get install -y git openssh-client
+    - eval $(ssh-agent -s)
+    - |
+      mkdir -p ~/.ssh
+      chmod 700 ~/.ssh
+      echo "$CI_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+      chmod 600 ~/.ssh/id_rsa
+      ssh-add ~/.ssh/id_rsa
+      ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
+      ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+    - pip install python-semantic-release
+  script:
+    # Vérifier si config/__init__.py existe, sinon le créer
+    - |
+      if [ ! -f "config/__init__.py" ]; then
+        mkdir -p config
+        echo "__version__ = \"0.1.0\"" > config/__init__.py
+      fi
+
+    # Vérifier si setup.cfg existe, sinon le créer
+    - |
+      if [ ! -f "setup.cfg" ]; then
+        cat > setup.cfg << EOF
+        [semantic_release]
+        version_variable = config/__init__.py:__version__
+        branch = master
+        changelog_file = CHANGELOG.md
+        EOF
+      fi
+
+    # Détecter si des changements conséquents ont été faits
+    - |
+      CHANGES=$(git log -1 --pretty=%B | grep -E "^(feat|fix|perf|revert|BREAKING CHANGE)")
+      if [ ! -z "$CHANGES" ]; then
+        echo "Changements conséquents détectés, mise à jour du changelog..."
+        semantic-release version 
+        git config --global user.name "GitLab CI"
+        git config --global user.email "gitlab-ci@example.com"
+        git add CHANGELOG.md config/__init__.py
+        git commit -m "docs: mise à jour du changelog [skip ci]"
+        git push origin HEAD:master
+      else
+        echo "Pas de changements conséquents, le changelog reste inchangé"
+      fi
+
+
+sync-to-github:
+  stage: sync
+  image: "python:3.12"
+  only:
+    - master
+  needs:
+    - update-changelog
+  before_script:
+    # Configuration SSH
+    - apt-get update && apt-get install -y git openssh-client
+    - eval $(ssh-agent -s)
+    - |
+      mkdir -p ~/.ssh
+      chmod 700 ~/.ssh
+      echo "$CI_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+      chmod 600 ~/.ssh/id_rsa
+      ssh-add ~/.ssh/id_rsa
+      ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
+      ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+  script:
+    # Configuration Git
+    - git config --global user.name "GitLab CI"
+    - git config --global user.email "gitlab-ci@example.com"
+
+    # Utilisation de SSH au lieu de HTTPS pour GitHub
+    - git remote add github git@github.com:stan-kempachi/recovr_software.git
+
+    # Push vers GitHub avec la branche master
+    - git push github HEAD:master
+    - git push github --tags  # Pour synchroniser aussi les tags
+
+
+## Deploy stage (pour le déploiement futur)
+#deploy:
+#  stage: deploy
+#  image: "alpine:latest"
+#  needs:
+#    - sync-to-github
+#  before_script:
+#    # Installation de SSH et configuration de la clé privée
+#    - apk add --no-cache openssh git
+#    - eval $(ssh-agent -s)
+#    - |
+#      mkdir -p ~/.ssh
+#      chmod 700 ~/.ssh
+#      echo "$CI_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+#      chmod 600 ~/.ssh/id_rsa
+#      ssh-add ~/.ssh/id_rsa
+#      ssh-keyscan -H "$SERVER_SSH_HOST" >> ~/.ssh/known_hosts
+#  script:
+#    - echo "Déploiement sur le serveur $SERVER_SSH_HOST, utilisateur : $SERVER_SSH_USER"
+#    # Commandes pour Django
+#    - scp -P $SERVER_SSH_PORT -r . $SERVER_SSH_USER@$SERVER_SSH_HOST:$DEPLOY_PATH
+#    - ssh -p $SERVER_SSH_PORT $SERVER_SSH_USER@$SERVER_SSH_HOST "cd $DEPLOY_PATH && docker build -t django-account . && docker run -d -p 8000:8000 django-account"
+#  only:
+#    - master
