@@ -59,12 +59,10 @@ update-changelog:
     # Vérifier si setup.cfg existe, sinon le créer
     - |
       if [ ! -f "setup.cfg" ]; then
-        cat > setup.cfg << EOF
-        [semantic_release]
-        version_variable = config/__init__.py:__version__
-        branch = master
-        changelog_file = CHANGELOG.md
-        EOF
+        echo '[semantic_release]' > setup.cfg
+        echo 'version_variable = config/__init__.py:__version__' >> setup.cfg
+        echo 'branch = master' >> setup.cfg
+        echo 'changelog_file = CHANGELOG.md' >> setup.cfg
       fi
 
     # Détecter si des changements conséquents ont été faits
