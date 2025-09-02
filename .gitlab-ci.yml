@@ -37,7 +37,7 @@ update-changelog:
   only:
     - master
   variables:
-    GH_TOKEN: $GH_TOKEN
+    GITLAB_TOKEN: $CI_JOB_TOKEN
   before_script:
     # Configuration SSH
     - apt-get update && apt-get install -y git openssh-client
@@ -49,7 +49,6 @@ update-changelog:
       chmod 600 ~/.ssh/id_rsa
       ssh-add ~/.ssh/id_rsa
       ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
-      ssh-keyscan -H github.com >> ~/.ssh/known_hosts
     - pip install python-semantic-release
     # Configurer git pour travailler avec la branche
     - git config --global user.name "GitLab CI"
@@ -65,22 +64,35 @@ update-changelog:
         echo "__version__ = \"0.1.0\"" > config/__init__.py
       fi
 
-    # Vérifier si setup.cfg existe, sinon le créer
+    # Créer ou mettre à jour setup.cfg pour utiliser GitLab au lieu de GitHub
     - |
-      if [ ! -f "setup.cfg" ]; then
-        echo '[semantic_release]' > setup.cfg
-        echo 'version_variable = config/__init__.py:__version__' >> setup.cfg
-        echo 'branch = master' >> setup.cfg
-        echo 'changelog_file = CHANGELOG.md' >> setup.cfg
-        echo 'github_repo = recovr_software' >> setup.cfg
-        echo 'github_user = stan-kempachi' >> setup.cfg
-        echo 'github_token = ${GH_TOKEN}' >> setup.cfg
-      else
-        # S'assurer que la config GitHub token est bien présente
-        if ! grep -q "github_token" setup.cfg; then
-          echo 'github_token = ${GH_TOKEN}' >> setup.cfg
-        fi
-      fi
+      cat > setup.cfg << EOF
+      [semantic_release]
+      version_variable = config/__init__.py:__version__
+      branch = master
+      changelog_file = CHANGELOG.md
+      # Configuration pour GitLab
+      upload_to_repository = false
+      vcs_provider = gitlab
+      gitlab_url = https://gitlab.com
+      gitlab_token = ${GITLAB_TOKEN}
+      EOF
+
+    # Créer pyproject.toml pour semantic-release v10+
+    - |
+      cat > pyproject.toml << EOF
+      [tool.semantic_release]
+      version_variables = ["config/__init__.py:__version__"]
+      branch = "master"
+      changelog_file = "CHANGELOG.md"
+      upload_to_repository = false
+      
+      [tool.semantic_release.remote]
+      type = "gitlab"
+      repository = "django1361117/recovr_software"
+      gitlab_url = "https://gitlab.com"
+      token = "${GITLAB_TOKEN}"
+      EOF
 
     # Afficher le dernier commit pour le débogage
     - echo "Dernier message de commit:"
@@ -93,15 +105,9 @@ update-changelog:
       
       if [ ! -z "$CHANGES" ]; then
         echo "Changements conséquents détectés, mise à jour du changelog..."
-        # Exporter GH_TOKEN pour que semantic-release puisse l'utiliser
-        export GH_TOKEN
       
-        # Vérifier la version de semantic-release et afficher l'aide
-        semantic-release --version
-        semantic-release version --help
-      
-        # Exécuter semantic-release
-        semantic-release version
+        # Exécuter semantic-release avec no-push pour éviter l'erreur de push
+        semantic-release version --no-push
       
         # Vérifier si des fichiers ont été modifiés
         if git status --porcelain | grep -q "CHANGELOG.md\|config/__init__.py"; then
@@ -111,12 +117,11 @@ update-changelog:
           echo "Changelog mis à jour et poussé vers le dépôt"
         else
           echo "Aucun changement détecté dans CHANGELOG.md ou config/__init__.py"
-          cat setup.cfg
         fi
       else
         echo "Pas de changements conséquents, le changelog reste inchangé"
       fi
-      
+
 
 sync-to-github:
   stage: sync
