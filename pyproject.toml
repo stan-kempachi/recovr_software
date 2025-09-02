@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "recovr_software"
+version = "0.1.0"
+description = "Projet généré avec Cookiecutter + Poetry"
+authors = ["Stan Bruyere <adm.standev@gmail.com>"]
+packages = [{ include = "recovr_software" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+django = "^4.2"
+djangorestframework = "^3.16.1"
+django-cors-headers = "^4.7.0"
+pillow = "^11.3.0"
+
+
+[tool.poetry.group.dev.dependencies]
+
+black = "*"
+isort = "*"
+ruff = "*"
+pytest = "*"
+pre-commit = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
