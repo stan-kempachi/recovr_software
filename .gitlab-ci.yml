@@ -14,7 +14,7 @@ lint:
   script:
     - poetry install
     - poetry run black --check .
-    - poetry run ruff .
+    - poetry run ruff ckeck .
     - poetry run isort --check-only .
 
 
