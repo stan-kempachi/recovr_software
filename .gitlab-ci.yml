@@ -60,7 +60,7 @@ update-changelog:
       if [ ! -f "config/__init__.py" ]; then
         mkdir -p config
         echo "__version__ = \"0.1.0\"" > config/__init__.py
-      fifix: disable changelog auto-update until permissions are resolved
+      fi
 
     # Vérifier si setup.cfg existe, sinon le créer
     - |
