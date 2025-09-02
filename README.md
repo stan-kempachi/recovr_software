@@ -25,3 +25,8 @@ poetry install
 ```bash
 poetry run python manage.py runserver
 ```
+
+- Pour pre-commit :
+```bash
+poetry run pre-commit run --all-files
+```

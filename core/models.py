@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 class Currency(models.Model):
     """Modèle pour les devises"""
+
     code = models.CharField(_("Code"), max_length=3, unique=True)
     name = models.CharField(_("Nom"), max_length=100)
     symbol = models.CharField(_("Symbole"), max_length=5)
@@ -19,6 +20,7 @@ class Currency(models.Model):
 
 class Country(models.Model):
     """Modèle pour les pays"""
+
     code = models.CharField(_("Code"), max_length=2, unique=True)
     name = models.CharField(_("Nom"), max_length=100)
 
@@ -32,6 +34,7 @@ class Country(models.Model):
 
 class SystemSetting(models.Model):
     """Paramètres système globaux"""
+
     key = models.CharField(_("Clé"), max_length=100, unique=True)
     value = models.JSONField(_("Valeur"))
     description = models.TextField(_("Description"), blank=True)
@@ -47,23 +50,24 @@ class SystemSetting(models.Model):
 
 class AuditLog(models.Model):
     """Journal d'audit pour traçabilité des actions"""
+
     ACTION_CHOICES = (
-        ('create', _('Création')),
-        ('update', _('Modification')),
-        ('delete', _('Suppression')),
-        ('login', _('Connexion')),
-        ('logout', _('Déconnexion')),
-        ('export', _('Export')),
-        ('import', _('Import')),
-        ('other', _('Autre')),
+        ("create", _("Création")),
+        ("update", _("Modification")),
+        ("delete", _("Suppression")),
+        ("login", _("Connexion")),
+        ("logout", _("Déconnexion")),
+        ("export", _("Export")),
+        ("import", _("Import")),
+        ("other", _("Autre")),
     )
 
     user = models.ForeignKey(
-        'accounts.User',
+        "accounts.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="audit_logs"
+        related_name="audit_logs",
     )
     action = models.CharField(_("Action"), max_length=10, choices=ACTION_CHOICES)
     content_type = models.CharField(_("Type de contenu"), max_length=100)
@@ -76,4 +80,4 @@ class AuditLog(models.Model):
     class Meta:
         verbose_name = _("Journal d'audit")
         verbose_name_plural = _("Journaux d'audit")
-        ordering = ['-timestamp']
+        ordering = ["-timestamp"]

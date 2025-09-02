@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 class DocumentType(models.Model):
     """Types de documents requis pour la conformité des factures"""
+
     code = models.CharField(_("Code"), max_length=10, unique=True)
     name = models.CharField(_("Nom"), max_length=100)
     description = models.TextField(_("Description"), blank=True)
@@ -19,6 +20,7 @@ class DocumentType(models.Model):
 
 class ComplianceRule(models.Model):
     """Règles de conformité pour les factures"""
+
     name = models.CharField(_("Nom"), max_length=100)
     description = models.TextField(_("Description"), blank=True)
     rule_type = models.CharField(_("Type de règle"), max_length=50)
@@ -30,7 +32,7 @@ class ComplianceRule(models.Model):
     class Meta:
         verbose_name = _("Règle de conformité")
         verbose_name_plural = _("Règles de conformité")
-        ordering = ['priority', 'name']
+        ordering = ["priority", "name"]
 
     def __str__(self):
         return self.name
@@ -38,15 +40,20 @@ class ComplianceRule(models.Model):
 
 class ComplianceCheckResult(models.Model):
     """Résultats des vérifications de conformité"""
+
     STATUS_CHOICES = (
-        ('pass', _('Conforme')),
-        ('fail', _('Non conforme')),
-        ('warning', _('Avertissement')),
-        ('pending', _('En attente')),
+        ("pass", _("Conforme")),
+        ("fail", _("Non conforme")),
+        ("warning", _("Avertissement")),
+        ("pending", _("En attente")),
     )
 
-    invoice = models.ForeignKey('invoices.Invoice', on_delete=models.CASCADE, related_name="compliance_checks")
-    rule = models.ForeignKey(ComplianceRule, on_delete=models.CASCADE, related_name="check_results")
+    invoice = models.ForeignKey(
+        "invoices.Invoice", on_delete=models.CASCADE, related_name="compliance_checks"
+    )
+    rule = models.ForeignKey(
+        ComplianceRule, on_delete=models.CASCADE, related_name="check_results"
+    )
     status = models.CharField(_("Statut"), max_length=10, choices=STATUS_CHOICES)
     details = models.JSONField(_("Détails"), blank=True, null=True)
     checked_at = models.DateTimeField(_("Vérifié le"), auto_now=True)
@@ -54,4 +61,4 @@ class ComplianceCheckResult(models.Model):
     class Meta:
         verbose_name = _("Résultat de vérification de conformité")
         verbose_name_plural = _("Résultats de vérification de conformité")
-        unique_together = [['invoice', 'rule']]
+        unique_together = [["invoice", "rule"]]
