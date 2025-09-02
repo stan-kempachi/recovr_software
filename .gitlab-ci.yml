@@ -5,6 +5,7 @@ stages:
   - sync
 #  - deploy
 
+
 # Lint stage
 lint:
   stage: lint
@@ -75,22 +76,36 @@ update-changelog:
         echo 'github_user = stan-kempachi' >> setup.cfg
       fi
 
+    # Afficher le dernier commit pour le débogage
+    - echo "Dernier message de commit:"
+    - git log -1 --pretty=%B
 
     # Détecter si des changements conséquents ont été faits
     - |
-      CHANGES=$(git log -1 --pretty=%B | grep -E "^(feat|fix|perf|revert|BREAKING CHANGE)")
+      CHANGES=$(git log -1 --pretty=%B | grep -E "^(feat|fix|perf|revert|BREAKING CHANGE)" || true)
+      echo "Changements détectés: $CHANGES"
+      
       if [ ! -z "$CHANGES" ]; then
         echo "Changements conséquents détectés, mise à jour du changelog..."
-        semantic-release version 
+        semantic-release version --verbosity=DEBUG || echo "Erreur lors de l'exécution de semantic-release, mais on continue"
+        echo "Statut après semantic-release: $?"
+        
         git config --global user.name "GitLab CI"
         git config --global user.email "gitlab-ci@example.com"
-        git add CHANGELOG.md config/__init__.py
-        git commit -m "docs: mise à jour du changelog [skip ci]"
-        git push origin HEAD:master
+        
+        if [ -f "CHANGELOG.md" ]; then
+          git add CHANGELOG.md config/__init__.py
+          git commit -m "docs: mise à jour du changelog [skip ci]"
+          git push origin HEAD:master
+        else
+          echo "CHANGELOG.md n'existe pas, vérifiez que semantic-release l'a bien créé"
+        fi
       else
         echo "Pas de changements conséquents, le changelog reste inchangé"
+        # Forcer un succès même s'il n'y a pas de changements
+        exit 0
       fi
-
+      
 
 sync-to-github:
   stage: sync
