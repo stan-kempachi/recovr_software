@@ -74,6 +74,12 @@ update-changelog:
         echo 'changelog_file = CHANGELOG.md' >> setup.cfg
         echo 'github_repo = recovr_software' >> setup.cfg
         echo 'github_user = stan-kempachi' >> setup.cfg
+        echo 'github_token = ${GH_TOKEN}' >> setup.cfg
+      else
+        # S'assurer que la config GitHub token est bien présente
+        if ! grep -q "github_token" setup.cfg; then
+          echo 'github_token = ${GH_TOKEN}' >> setup.cfg
+        fi
       fi
 
     # Afficher le dernier commit pour le débogage
@@ -87,23 +93,28 @@ update-changelog:
       
       if [ ! -z "$CHANGES" ]; then
         echo "Changements conséquents détectés, mise à jour du changelog..."
-        semantic-release version --verbosity=DEBUG || echo "Erreur lors de l'exécution de semantic-release, mais on continue"
-        echo "Statut après semantic-release: $?"
-        
-        git config --global user.name "GitLab CI"
-        git config --global user.email "gitlab-ci@example.com"
-        
-        if [ -f "CHANGELOG.md" ]; then
+        # Exporter GH_TOKEN pour que semantic-release puisse l'utiliser
+        export GH_TOKEN
+      
+        # Vérifier la version de semantic-release et afficher l'aide
+        semantic-release --version
+        semantic-release version --help
+      
+        # Exécuter semantic-release
+        semantic-release version
+      
+        # Vérifier si des fichiers ont été modifiés
+        if git status --porcelain | grep -q "CHANGELOG.md\|config/__init__.py"; then
           git add CHANGELOG.md config/__init__.py
           git commit -m "docs: mise à jour du changelog [skip ci]"
           git push origin HEAD:master
+          echo "Changelog mis à jour et poussé vers le dépôt"
         else
-          echo "CHANGELOG.md n'existe pas, vérifiez que semantic-release l'a bien créé"
+          echo "Aucun changement détecté dans CHANGELOG.md ou config/__init__.py"
+          cat setup.cfg
         fi
       else
         echo "Pas de changements conséquents, le changelog reste inchangé"
-        # Forcer un succès même s'il n'y a pas de changements
-        exit 0
       fi
       
 
