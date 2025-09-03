@@ -16,3 +16,6 @@ static/
 .idea/" > .gitignore
 /_Docs/
 .idea/vcs.xml
+/github_key
+/github_key.pub
+/github_key_lf
