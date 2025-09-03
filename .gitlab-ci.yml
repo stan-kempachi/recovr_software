@@ -64,64 +64,37 @@ update-changelog:
         echo "__version__ = \"0.1.0\"" > config/__init__.py
       fi
 
-    # Créer ou mettre à jour setup.cfg pour utiliser GitLab au lieu de GitHub
+    # Mettre à jour le token dans pyproject.toml sans modifier le reste du fichier
     - |
-      cat > setup.cfg << EOF
-      [semantic_release]
-      version_variable = config/__init__.py:__version__
-      branch = master
-      changelog_file = CHANGELOG.md
-      # Configuration pour GitLab
-      upload_to_repository = false
-      vcs_provider = gitlab
-      gitlab_url = https://gitlab.com
-      gitlab_token = ${GITLAB_TOKEN}
-      EOF
-
-    # Créer pyproject.toml pour semantic-release v10+
-    - |
-      cat > pyproject.toml << EOF
-      [tool.semantic_release]
-      version_variables = ["config/__init__.py:__version__"]
-      branch = "master"
-      changelog_file = "CHANGELOG.md"
-      upload_to_repository = false
+      if [ -f "pyproject.toml" ]; then
+        # Sauvegarder le contenu existant
+        cp pyproject.toml pyproject.toml.bak
       
-      [tool.semantic_release.remote]
-      type = "gitlab"
-      repository = "django1361117/recovr_software"
-      gitlab_url = "https://gitlab.com"
-      token = "${GITLAB_TOKEN}"
-      EOF
-
-    # Afficher le dernier commit pour le débogage
-    - echo "Dernier message de commit:"
-    - git log -1 --pretty=%B
-
-    # Détecter si des changements conséquents ont été faits
-    - |
-      CHANGES=$(git log -1 --pretty=%B | grep -E "^(feat|fix|perf|revert|BREAKING CHANGE)" || true)
-      echo "Changements détectés: $CHANGES"
-      
-      if [ ! -z "$CHANGES" ]; then
-        echo "Changements conséquents détectés, mise à jour du changelog..."
-      
-        # Exécuter semantic-release avec no-push pour éviter l'erreur de push
-        semantic-release version --no-push
-      
-        # Vérifier si des fichiers ont été modifiés
-        if git status --porcelain | grep -q "CHANGELOG.md\|config/__init__.py"; then
-          git add CHANGELOG.md config/__init__.py
-          git commit -m "docs: mise à jour du changelog [skip ci]"
-          git push origin HEAD:master
-          echo "Changelog mis à jour et poussé vers le dépôt"
+        # Vérifier si la section remote existe et mettre à jour uniquement le token
+        if grep -q "\[tool.semantic_release.remote\]" pyproject.toml; then
+          sed -i "/\[tool.semantic_release.remote\]/,/^\[/ s/token.*=.*/token = \"${GITLAB_TOKEN}\"/" pyproject.toml
         else
-          echo "Aucun changement détecté dans CHANGELOG.md ou config/__init__.py"
+          # Si la section remote n'existe pas mais que tool.semantic_release existe
+          if grep -q "\[tool.semantic_release\]" pyproject.toml; then
+            echo -e "\n[tool.semantic_release.remote]\ntype = \"gitlab\"\nrepository = \"django1361117/recovr_software\"\ngitlab_url = \"https://gitlab.com\"\ntoken = \"${GITLAB_TOKEN}\"" >> pyproject.toml
+          fi
         fi
-      else
-        echo "Pas de changements conséquents, le changelog reste inchangé"
       fi
 
+    # Exécuter semantic-release pour mettre à jour le CHANGELOG
+    - semantic-release --ci version
+    - semantic-release --ci changelog
+
+    # Commit et push des changements
+    - |
+      if git diff --exit-code; then
+        echo "Aucun changement à committer"
+      else
+        git add CHANGELOG.md config/__init__.py
+        git commit -m "chore: Mise à jour du CHANGELOG et de la version [skip ci]"
+        git push origin master
+      fi
+      
 
 sync-to-github:
   stage: sync
@@ -137,21 +110,7 @@ sync-to-github:
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
       # Utiliser la clé SSH spécifique pour GitHub
-      echo "$GITHUB_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_github
-      chmod 600 ~/.ssh/id_rsa_github
-      ssh-add ~/.ssh/id_rsa_github
-      ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-    # Configurer git pour travailler avec GitHub
-    - git config --global user.name "GitLab CI"
-    - git config --global user.email "gitlab-ci@example.com"
-  script:
-    # Cloner le dépôt GitLab actuel
-    - git clone --mirror $CI_REPOSITORY_URL gitlab_repo
-    - cd gitlab_repo
-    # Configurer le dépôt GitHub distant
-    - git remote add github git@github.com:stan-kempachi/recovr_software.git
-    # Pousser vers GitHub
-    - git push --mirror github
+      echo "$GITHUB_SSH_KEY"
 
 ## Deploy stage (pour le déploiement futur)
 #deploy:
