@@ -79,7 +79,7 @@ update-changelog:
     - git log -1 --pretty=%B
 
     # Utiliser semantic-release directement sans détection supplémentaire
-    - semantic-release version --no-push -vv
+    - semantic-release version --no-push
 
     # Vérifier si des fichiers ont été modifiés
     - |
