@@ -13,6 +13,7 @@ db.sqlite3
 .DS_Store
 media/
 static/
+.idea
 .idea/" > .gitignore
 /_Docs/
 .idea/vcs.xml
