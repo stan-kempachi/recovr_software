@@ -54,7 +54,7 @@ update-changelog:
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
     # Au lieu de faire un checkout, cloner le repo avec l'historique complet
-    - git clone --depth=50 https://${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git /tmp/repo
+    - git clone --depth=50 git@gitlab.com:${CI_PROJECT_PATH}.git /tmp/repo
     - cd /tmp/repo
     # Configurer l'URL du dépôt en utilisant SSH au lieu de HTTPS
     - git remote set-url origin git@gitlab.com:django1361117/recovr_software.git
