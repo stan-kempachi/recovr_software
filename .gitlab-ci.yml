@@ -90,14 +90,8 @@ update-changelog:
         echo "Changelog mis à jour et poussé vers le dépôt"
       else
         echo "Aucun changement détecté dans CHANGELOG.md ou config/__init__.py"
-      fifix(ci): resolve SHA resolution error in changelog generation
-
-  - Replace checkout with proper git clone to ensure complete history
-  - Set clone depth to 50 commits for proper SHA resolution
-  - Remove manual change detection as semantic-release handles it
-  - Add verbose logging for better error diagnosis
-  - Switch working directory to properly cloned repository
-
+      fi   
+      
 
 sync-to-github:
   stage: sync
