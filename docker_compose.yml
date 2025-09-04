@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # Service de base de données PostgreSQL partagé
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_USER=${DB_USER:-postgres}
+    networks:
+      - recovr_network
+
+  # Application Django - Production
+  web_production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - static_production:/app/staticfiles
+      - media_production:/app/media
+    depends_on:
+      - db
+    environment:
+      - ENVIRONMENT=production
+      - SECRET_KEY=${PRODUCTION_SECRET_KEY}
+      - DEBUG=False
+      - ALLOWED_HOSTS=recovr.com,www.recovr.com
+      - DB_NAME=recovr_production
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=db
+    networks:
+      - recovr_network
+    restart: always
+
+  # Application Django - Staging
+  web_staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8001
+    volumes:
+      - static_staging:/app/staticfiles
+      - media_staging:/app/media
+    depends_on:
+      - db
+    environment:
+      - ENVIRONMENT=staging
+      - SECRET_KEY=${STAGING_SECRET_KEY}
+      - DEBUG=False
+      - ALLOWED_HOSTS=staging.recovr.com
+      - DB_NAME=recovr_staging
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=db
+    networks:
+      - recovr_network
+    restart: always
+
+  # Serveur Nginx pour gérer les requêtes et les fichiers statiques
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - static_production:/var/www/production/static
+      - static_staging:/var/www/staging/static
+      - media_production:/var/www/production/media
+      - media_staging:/var/www/staging/media
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - web_production
+      - web_staging
+    networks:
+      - recovr_network
+    restart: always
+
+  # Service Certbot pour les certificats SSL
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  postgres_data:
+  static_production:
+  static_staging:
+  media_production:
+  media_staging:
+
+networks:
+  recovr_network:
