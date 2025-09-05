@@ -3,7 +3,8 @@ stages:
   - test
   - changelog
   - sync
-#  - deploy
+  - deploy-staging
+  - deploy-production
 
 
 # Lint stage
@@ -91,7 +92,7 @@ update-changelog:
       else
         echo "Aucun changement détecté dans CHANGELOG.md ou config/__init__.py"
       fi   
-      
+
 
 sync-to-github:
   stage: sync
@@ -123,27 +124,77 @@ sync-to-github:
     # Pousser vers GitHub
     - git push --mirror github
 
-## Deploy stage (pour le déploiement futur)
-#deploy:
-#  stage: deploy
-#  image: "alpine:latest"
-#  needs:
-#    - sync-to-github
-#  before_script:
-#    # Installation de SSH et configuration de la clé privée
-#    - apk add --no-cache openssh git
-#    - eval $(ssh-agent -s)
-#    - |
-#      mkdir -p ~/.ssh
-#      chmod 700 ~/.ssh
-#      echo "$CI_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-#      chmod 600 ~/.ssh/id_rsa
-#      ssh-add ~/.ssh/id_rsa
-#      ssh-keyscan -H "$SERVER_SSH_HOST" >> ~/.ssh/known_hosts
-#  script:
-#    - echo "Déploiement sur le serveur $SERVER_SSH_HOST, utilisateur : $SERVER_SSH_USER"
-#    # Commandes pour Django
-#    - scp -P $SERVER_SSH_PORT -r . $SERVER_SSH_USER@$SERVER_SSH_HOST:$DEPLOY_PATH
-#    - ssh -p $SERVER_SSH_PORT $SERVER_SSH_USER@$SERVER_SSH_HOST "cd $DEPLOY_PATH && docker build -t django-account . && docker run -d -p 8000:8000 django-account"
-#  only:
-#    - master
+# Déploiement en staging
+deploy-staging:
+  stage: deploy-staging
+  image: "alpine:latest"
+  only:
+    - master
+  needs:
+    - sync-to-github
+  variables:
+    STAGING_SERVER: $STAGING_SERVER
+    STAGING_SSH_USER: $STAGING_SSH_USER
+  before_script:
+    # Installation de SSH et configuration de la clé privée
+    - apk add --no-cache openssh-client bash git
+    - eval $(ssh-agent -s)
+    - |
+      mkdir -p ~/.ssh
+      chmod 700 ~/.ssh
+      echo "$STAGING_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_staging
+      chmod 600 ~/.ssh/id_rsa_staging
+      ssh-add ~/.ssh/id_rsa_staging
+      ssh-keyscan -H $STAGING_SERVER >> ~/.ssh/known_hosts
+  script:
+    - echo "Déploiement sur l'environnement de staging..."
+    - |
+      ssh $STAGING_SSH_USER@$STAGING_SERVER "cd /path/to/staging/app && \
+      git pull origin master && \
+      docker-compose -f docker-compose.yml down && \
+      docker-compose -f docker-compose.yml up -d web_staging nginx && \
+      docker-compose exec -T web_staging python manage.py migrate --settings=config.staging_settings && \
+      docker-compose exec -T web_staging python manage.py collectstatic --noinput --settings=config.staging_settings"
+  environment:
+    name: staging
+    url: https://staging.recovr.com
+  when: manual
+
+# Déploiement en production
+deploy-production:
+  stage: deploy-production
+  image: "alpine:latest"
+  only:
+    - master
+  needs:
+    - deploy-staging
+  variables:
+    PRODUCTION_SERVER: $PRODUCTION_SERVER
+    PRODUCTION_SSH_USER: $PRODUCTION_SSH_USER
+  before_script:
+    # Installation de SSH et configuration de la clé privée
+    - apk add --no-cache openssh-client bash git
+    - eval $(ssh-agent -s)
+    - |
+      mkdir -p ~/.ssh
+      chmod 700 ~/.ssh
+      echo "$PRODUCTION_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_production
+      chmod 600 ~/.ssh/id_rsa_production
+      ssh-add ~/.ssh/id_rsa_production
+      ssh-keyscan -H $PRODUCTION_SERVER >> ~/.ssh/known_hosts
+  script:
+    - echo "Déploiement sur l'environnement de production..."
+    - |
+      ssh $PRODUCTION_SSH_USER@$PRODUCTION_SERVER "cd /path/to/production/app && \
+      git pull origin master && \
+      docker-compose -f docker-compose.yml down && \
+      docker-compose -f docker-compose.yml up -d web nginx && \
+      docker-compose exec -T web python manage.py migrate && \
+      docker-compose exec -T web python manage.py collectstatic --noinput"
+  environment:
+    name: production
+    url: https://recovr.com
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
