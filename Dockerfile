@@ -23,8 +23,16 @@ RUN pip install --upgrade pip \
 COPY pyproject.toml poetry.lock* /app/
 
 # Configuration de Poetry pour ne pas créer d'environnement virtuel
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi
+# (puisque le conteneur est déjà isolé)
+RUN poetry config virtualenvs.create false
+
+# Installer les dépendances en fonction de l'environnement
+ARG ENVIRONMENT=production
+RUN if [ "$ENVIRONMENT" = "production" ]; then \
+        poetry install --only main --no-interaction --no-ansi; \
+    else \
+        poetry install --no-interaction --no-ansi; \
+    fi
 
 # Copie du reste du code source
 COPY . /app/
@@ -32,11 +40,10 @@ COPY . /app/
 # Création des répertoires pour les fichiers statiques et médias
 RUN mkdir -p /app/staticfiles /app/media
 
-# Collecte des fichiers statiques
-RUN python manage.py collectstatic --noinput
+# Collecte des fichiers statiques - sera exécutée au démarrage dans le docker-compose
+# pour utiliser les variables d'environnement correctes
 
 # Exposer le port
 EXPOSE 8000
 
-# Commande par défaut
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+# La commande par défaut sera définie dans docker-compose.yml
