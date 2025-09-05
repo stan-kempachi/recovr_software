@@ -30,6 +30,44 @@ poetry run python manage.py runserver
 poetry run pre-commit run --all-files
 ```
 
+## Environnements
+
+Le projet RecovR est configuré avec trois environnements :
+
+### Développement (Local)
+- Utilisé pour le développement quotidien
+- Base de données PostgreSQL configurée en local
+- Accessible via http://localhost:8000
+
+### Staging
+- Réplique de l'environnement de production
+- Utilisé pour tester les fonctionnalités avant déploiement en production
+- Base de données PostgreSQL
+- Accessible via https://staging.recovr.com (protégé par authentification)
+
+### Production
+- Environnement de production final
+- Base de données PostgreSQL optimisée
+- Accessible via https://recovr.com
+
+## Déploiement avec Docker
+
+Le projet utilise Docker et Docker Compose pour les déploiements :
+
+```bash
+# Démarrer tous les services
+docker-compose up -d
+
+# Démarrer uniquement l'environnement de staging
+docker-compose up -d web_staging nginx
+
+# Exécuter les migrations dans l'environnement de staging
+docker-compose exec web_staging python manage.py migrate
+
+# Créer un superutilisateur pour l'environnement de staging
+docker-compose exec web_staging python manage.py createsuperuser
+```
+
 ## Versionnement et CHANGELOG
 
 Ce projet utilise [python-semantic-release](https://python-semantic-release.readthedocs.io/) pour gérer automatiquement les versions et le CHANGELOG.
