@@ -131,31 +131,52 @@ deploy-staging:
   needs:
     - sync-to-github
   variables:
-    STAGING_SERVER: $STAGING_SERVER
-    STAGING_SSH_USER: $STAGING_SSH_USER
+    DO_IP: $DO_IP
+    DO_USER: $DO_USER
+    SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
   before_script:
     # Installation de SSH et configuration de la clé privée
-    - apk add --no-cache openssh-client bash git
-    - eval $(ssh-agent -s)
-    - |
-      mkdir -p ~/.ssh
-      chmod 700 ~/.ssh
-      echo "$STAGING_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_staging
-      chmod 600 ~/.ssh/id_rsa_staging
-      ssh-add ~/.ssh/id_rsa_staging
-      ssh-keyscan -H $STAGING_SERVER >> ~/.ssh/known_hosts
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
-    - echo "Déploiement sur l'environnement de staging..."
+    # Création du fichier .env pour l'environnement de staging
+    - echo "# Parametres generaux pour staging" > .env.staging
+    - echo "DEBUG=False" >> .env.staging
+    - echo "SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
+    - echo "ALLOWED_HOSTS=$DO_IP,recovr-staging.example.com" >> .env.staging
+    - echo "" >> .env.staging
+    - echo "# Database - Staging" >> .env.staging
+    - echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
+    - echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
+    - echo "DB_USER=$STAGING_DB_USER" >> .env.staging
+    - echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
+    - echo "DB_HOST=localhost" >> .env.staging  # Pour une DB locale sur le même droplet
+    - echo "DB_PORT=5432" >> .env.staging  # Port standard PostgreSQL
+
+    # Cloner le dépôt sur le serveur staging
+    - ssh $DO_USER@$DO_IP "mkdir -p /recovr_software/staging"
+
+    # Déployer le code et le fichier .env sur le serveur
+    - scp -r ./* $DO_USER@$DO_IP:/recovr_software/staging/
+    - scp .env.staging $DO_USER@$DO_IP:/recovr_software/staging/.env
+
+    # Exécuter les commandes de déploiement sur le serveur
     - |
-      ssh $STAGING_SSH_USER@$STAGING_SERVER "cd /path/to/staging/app && \
-      git pull origin master && \
-      docker-compose -f docker-compose.yml down && \
-      docker-compose -f docker-compose.yml up -d web_staging nginx && \
-      docker-compose exec -T web_staging python manage.py migrate --settings=config.staging_settings && \
-      docker-compose exec -T web_staging python manage.py collectstatic --noinput --settings=config.staging_settings"
-  environment:
-    name: staging
-    url: https://staging.recovr.com
+      ssh $DO_USER@$DO_IP "cd /recovr_software/staging && \
+      python3 -m venv venv || true && \
+      source venv/bin/activate && \
+      pip install --upgrade pip && \
+      pip install poetry && \
+      poetry config virtualenvs.create false && \
+      poetry install && \
+      python manage.py migrate && \
+      python manage.py collectstatic --noinput && \
+      sudo systemctl restart gunicorn-staging"
+  only:
+    - master
   when: manual
 
 # Déploiement en production
@@ -163,34 +184,52 @@ deploy-production:
   stage: deploy-production
   image: "alpine:latest"
   needs:
-    - deploy-staging
+    - deploy-staging  # Pour s'assurer que le staging fonctionne avant de déployer en production
   variables:
-    PRODUCTION_SERVER: $PRODUCTION_SERVER
-    PRODUCTION_SSH_USER: $PRODUCTION_SSH_USER
+    DO_IP: $DO_IP
+    DO_USER: $DO_USER
+    SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
   before_script:
     # Installation de SSH et configuration de la clé privée
-    - apk add --no-cache openssh-client bash git
-    - eval $(ssh-agent -s)
-    - |
-      mkdir -p ~/.ssh
-      chmod 700 ~/.ssh
-      echo "$PRODUCTION_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_production
-      chmod 600 ~/.ssh/id_rsa_production
-      ssh-add ~/.ssh/id_rsa_production
-      ssh-keyscan -H $PRODUCTION_SERVER >> ~/.ssh/known_hosts
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
-    - echo "Déploiement sur l'environnement de production..."
+    # Création du fichier .env pour l'environnement de production
+    - echo "# Parametres generaux pour production" > .env.production
+    - echo "DEBUG=False" >> .env.production
+    - echo "SECRET_KEY=$PRODUCTION_SECRET_KEY" >> .env.production
+    - echo "ALLOWED_HOSTS=$DO_IP,recovr.example.com" >> .env.production
+    - echo "" >> .env.production
+    - echo "# Database - Production" >> .env.production
+    - echo "DB_ENGINE=django.db.backends.postgresql" >> .env.production
+    - echo "DB_NAME=$PRODUCTION_DB_NAME" >> .env.production
+    - echo "DB_USER=$PRODUCTION_DB_USER" >> .env.production
+    - echo "DB_PASSWORD=$PRODUCTION_DB_PASSWORD" >> .env.production
+    - echo "DB_HOST=localhost" >> .env.production  # Pour une DB locale sur le même droplet
+    - echo "DB_PORT=5432" >> .env.production  # Port standard PostgreSQL
+
+    # Cloner le dépôt sur le serveur production
+    - ssh $DO_USER@$DO_IP "mkdir -p /recovr_software/production"
+
+    # Déployer le code et le fichier .env sur le serveur
+    - scp -r ./* $DO_USER@$DO_IP:/recovr_software/production/
+    - scp .env.production $DO_USER@$DO_IP:/recovr_software/production/.env
+
+    # Exécuter les commandes de déploiement sur le serveur
     - |
-      ssh $PRODUCTION_SSH_USER@$PRODUCTION_SERVER "cd /path/to/production/app && \
-      git pull origin master && \
-      docker-compose -f docker-compose.yml down && \
-      docker-compose -f docker-compose.yml up -d web nginx && \
-      docker-compose exec -T web python manage.py migrate && \
-      docker-compose exec -T web python manage.py collectstatic --noinput"
-  environment:
-    name: production
-    url: https://recovr.com
+      ssh $DO_USER@$DO_IP "cd /recovr_software/production && \
+      python3 -m venv venv || true && \
+      source venv/bin/activate && \
+      pip install --upgrade pip && \
+      pip install poetry && \
+      poetry config virtualenvs.create false && \
+      poetry install && \
+      python manage.py migrate && \
+      python manage.py collectstatic --noinput && \
+      sudo systemctl restart gunicorn-production"
+  only:
+    - master
   when: manual
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      when: manual
