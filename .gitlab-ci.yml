@@ -128,8 +128,6 @@ sync-to-github:
 deploy-staging:
   stage: deploy-staging
   image: "alpine:latest"
-  only:
-    - master
   needs:
     - sync-to-github
   variables:
@@ -164,8 +162,6 @@ deploy-staging:
 deploy-production:
   stage: deploy-production
   image: "alpine:latest"
-  only:
-    - master
   needs:
     - deploy-staging
   variables:
