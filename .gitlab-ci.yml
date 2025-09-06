@@ -141,6 +141,11 @@ deploy-staging:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
+    # Débogage des variables
+    - echo "DO_IP = ${DO_IP}"
+    - echo "DO_USER = ${DO_USER}"
+    # Test de connexion SSH
+    - ssh -v -o StrictHostKeyChecking=no $DO_USER@$DO_IP "echo 'SSH connection test successful'"
   script:
     # Création du fichier .env pour l'environnement de staging
     - echo "# Parametres generaux pour staging" > .env.staging
@@ -157,15 +162,15 @@ deploy-staging:
     - echo "DB_PORT=5432" >> .env.staging  # Port standard PostgreSQL
 
     # Cloner le dépôt sur le serveur staging
-    - ssh $DO_USER@$DO_IP "mkdir -p /recovr_software/staging"
+    - ssh -v -o StrictHostKeyChecking=no $DO_USER@$DO_IP "mkdir -p /recovr_software/staging"
 
     # Déployer le code et le fichier .env sur le serveur
-    - scp -r ./* $DO_USER@$DO_IP:/recovr_software/staging/
+    - scp -v -r ./* $DO_USER@$DO_IP:/recovr_software/staging/
     - scp .env.staging $DO_USER@$DO_IP:/recovr_software/staging/.env
 
     # Exécuter les commandes de déploiement sur le serveur
     - |
-      ssh $DO_USER@$DO_IP "cd /recovr_software/staging && \
+      ssh -v -o StrictHostKeyChecking=no $DO_USER@$DO_IP "cd /recovr_software/staging && \
       python3 -m venv venv || true && \
       source venv/bin/activate && \
       pip install --upgrade pip && \
@@ -196,6 +201,13 @@ deploy-production:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
+
+    # Débogage des variables
+    - echo "DO_IP = ${DO_IP}"
+    - echo "DO_USER = ${DO_USER}"
+
+    # Test de connexion SSH
+    - ssh -o StrictHostKeyChecking=no $DO_USER@$DO_IP "echo 'SSH connection test successful'"
   script:
     # Création du fichier .env pour l'environnement de production
     - echo "# Parametres generaux pour production" > .env.production
@@ -212,15 +224,15 @@ deploy-production:
     - echo "DB_PORT=5432" >> .env.production  # Port standard PostgreSQL
 
     # Cloner le dépôt sur le serveur production
-    - ssh $DO_USER@$DO_IP "mkdir -p /recovr_software/production"
+    - ssh -v -o StrictHostKeyChecking=no $DO_USER@$DO_IP "mkdir -p /recovr_software/production"
 
     # Déployer le code et le fichier .env sur le serveur
-    - scp -r ./* $DO_USER@$DO_IP:/recovr_software/production/
+    - scp -v -r ./* $DO_USER@$DO_IP:/recovr_software/production/
     - scp .env.production $DO_USER@$DO_IP:/recovr_software/production/.env
 
     # Exécuter les commandes de déploiement sur le serveur
     - |
-      ssh $DO_USER@$DO_IP "cd /recovr_software/production && \
+      ssh -v -o StrictHostKeyChecking=no $DO_USER@$DO_IP "cd /recovr_software/production && \
       python3 -m venv venv || true && \
       source venv/bin/activate && \
       pip install --upgrade pip && \
