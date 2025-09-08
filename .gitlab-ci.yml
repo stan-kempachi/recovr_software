@@ -142,8 +142,7 @@ deploy-staging:
 #    - sync-to-github
   variables:
     DO_IP: $DO_IP
-    DO_USER: django
-#    DO_USER: $DO_USER
+    DO_USER: $DO_USER
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
   before_script:
     # Installation de SSH et configuration de la clé privée
@@ -151,14 +150,13 @@ deploy-staging:
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
-    # Débogage des variables
-    - echo "DO_IP = ${DO_IP}"
-    - echo "DO_USER = ${DO_USER}"
-    # Test de connexion SSH
-    - apk add --no-cache netcat-openbsd
-    - echo "Testing connection to $DO_IP:22..."
-    - nc -zv $DO_IP 22 || echo "Port 22 n'est pas accessible"
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+    # Vérification de la clé
+    - ls -la ~/.ssh/
+    - ssh-keygen -l -f ~/.ssh/id_rsa
+    # Test de connexion
+    - ssh -vT $DO_USER@$DO_IP "echo 'Test de connexion SSH réussi'"
+
   script:
     # Création du fichier .env pour l'environnement de staging
     - echo "# Parametres generaux pour staging" > .env.staging
