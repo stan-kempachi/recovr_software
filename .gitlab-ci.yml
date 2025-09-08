@@ -188,14 +188,15 @@ deploy-staging:
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging/nginx"
     - scp nginx/default.conf $DO_USER@$DO_IP:/home/django/recovr_software/staging/nginx/
 
-    # Déploiement avec Docker Compose en utilisant le fichier .env
+    # Déploiement avec Docker Compose en utilisant le .env déjà copié
     - |
       ssh -v $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && \
-      docker-compose --env-file .env -f docker_compose.yml build web_staging && \
-      docker-compose --env-file .env -f docker_compose.yml up -d --no-recreate db && \
-      docker-compose --env-file .env -f docker_compose.yml up -d --no-recreate web_staging nginx && \
-      docker-compose --env-file .env -f docker_compose.yml exec -T web_staging python manage.py collectstatic --noinput && \
-      docker-compose --env-file .env -f docker_compose.yml exec -T web_staging python manage.py migrate"
+      docker-compose -f docker_compose.yml build web_staging && \
+      docker-compose -f docker_compose.yml up -d db && \
+      sleep 10 && \
+      docker-compose -f docker_compose.yml run --rm web_staging python manage.py migrate && \
+      docker-compose -f docker_compose.yml run --rm web_staging python manage.py collectstatic --noinput && \
+      docker-compose -f docker_compose.yml up -d web_staging nginx"
 
     # Vérification de l'état des conteneurs
     - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && docker-compose -f docker_compose.yml ps"
