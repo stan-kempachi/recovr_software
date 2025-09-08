@@ -3,7 +3,7 @@ name = "recovr_software"
 version = "0.1.0"
 description = "Projet généré avec Cookiecutter + Poetry"
 authors = ["Stan Bruyere <adm.standev@gmail.com>"]
-packages = [{ include = "recovr_software" }]
+packages = [{ include = "recovr_software", from = "." }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
