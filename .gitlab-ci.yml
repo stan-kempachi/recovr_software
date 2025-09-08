@@ -176,7 +176,7 @@ deploy-staging:
     - echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging  # Utilisation de la variable définie
     - echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging  # Utilisation de la variable définie
     - echo "ENVIRONMENT=staging" >> .env.staging
-    - echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
+    - echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env
 
     # Préparation du répertoire sur le serveur
     - ssh -v $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging/{nginx,certbot/conf,certbot/www}"
@@ -253,7 +253,7 @@ deploy-production:
 
     # Déployer le code et le fichier .env sur le serveur
     - scp -v -r ./* $DO_USER@$DO_IP:/recovr_software/production/
-    - scp .env.production $DO_USER@$DO_IP:/recovr_software/production/.env.production
+    - scp .env.production $DO_USER@$DO_IP:/recovr_software/production/.env
 
     # Exécuter les commandes de déploiement sur le serveur
     - |
