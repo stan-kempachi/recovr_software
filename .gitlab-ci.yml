@@ -148,6 +148,7 @@ deploy-staging:
     DOCKER_TLS_CERTDIR: "/certs"
     DOCKER_TLS_VERIFY: 1
     DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+
   before_script:
     - apk add --no-cache openssh-client bash rsync
     - mkdir -p ~/.ssh
@@ -172,7 +173,10 @@ deploy-staging:
     - echo "DB_PORT=5432" >> .env.staging
     - echo "ENVIRONMENT=staging" >> .env.staging
 
-    # Copier le .env correctement pour Docker Compose
+    # Transférer le .env.staging vers le serveur
+    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/
+
+    # Le copier en .env sur le serveur
     - ssh $DO_USER@$DO_IP "cp /home/django/recovr_software/staging/.env.staging /home/django/recovr_software/staging/.env"
 
     # Préparation du répertoire sur le serveur
@@ -180,7 +184,6 @@ deploy-staging:
 
     # Transférer les fichiers nécessaires
     - rsync -avz --delete -e "ssh -v" ./* $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
     - scp docker_compose.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - scp Dockerfile $DO_USER@$DO_IP:/home/django/recovr_software/staging/
 
@@ -192,7 +195,8 @@ deploy-staging:
     - |
       ssh -v $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && \
       docker-compose --env-file .env -f docker_compose.yml build web_staging && \
-      docker-compose --env-file .env -f docker_compose.yml up -d web_staging db nginx && \
+      docker-compose --env-file .env -f docker_compose.yml up -d --no-recreate db && \
+      docker-compose --env-file .env -f docker_compose.yml up -d --no-recreate web_staging nginx && \
       docker-compose --env-file .env -f docker_compose.yml exec -T web_staging python manage.py collectstatic --noinput && \
       docker-compose --env-file .env -f docker_compose.yml exec -T web_staging python manage.py migrate"
 
