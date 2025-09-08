@@ -183,7 +183,7 @@ deploy-staging:
 
     # Transférer les fichiers nécessaires
     - rsync -avz --delete -e "ssh -v" ./* $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
+    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
     - scp docker_compose.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - scp Dockerfile $DO_USER@$DO_IP:/home/django/recovr_software/staging/
 
@@ -253,7 +253,7 @@ deploy-production:
 
     # Déployer le code et le fichier .env sur le serveur
     - scp -v -r ./* $DO_USER@$DO_IP:/recovr_software/production/
-    - scp .env.production $DO_USER@$DO_IP:/recovr_software/production/.env
+    - scp .env.production $DO_USER@$DO_IP:/recovr_software/production/.env.production
 
     # Exécuter les commandes de déploiement sur le serveur
     - |
