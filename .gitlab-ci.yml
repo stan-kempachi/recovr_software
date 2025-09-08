@@ -149,16 +149,11 @@ deploy-staging:
     DOCKER_TLS_VERIFY: 1
     DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   before_script:
-    # Installation de SSH et des outils nécessaires
     - apk add --no-cache openssh-client bash rsync
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
-    # Vérification de la clé
-    - ls -la ~/.ssh/
-    - ssh-keygen -l -f ~/.ssh/id_rsa
-    # Test de connexion
     - ssh -vT $DO_USER@$DO_IP "echo 'Test de connexion SSH réussi'"
 
   script:
@@ -173,17 +168,19 @@ deploy-staging:
     - echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
     - echo "DB_USER=$STAGING_DB_USER" >> .env.staging
     - echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-    - echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
-    - echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
+    - echo "DB_HOST=db" >> .env.staging
+    - echo "DB_PORT=5432" >> .env.staging
     - echo "ENVIRONMENT=staging" >> .env.staging
-    - echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env
+
+    # Copier le .env correctement pour Docker Compose
+    - ssh $DO_USER@$DO_IP "cp /home/django/recovr_software/staging/.env.staging /home/django/recovr_software/staging/.env"
 
     # Préparation du répertoire sur le serveur
     - ssh -v $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging/{nginx,certbot/conf,certbot/www}"
 
     # Transférer les fichiers nécessaires
     - rsync -avz --delete -e "ssh -v" ./* $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
+    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
     - scp docker_compose.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - scp Dockerfile $DO_USER@$DO_IP:/home/django/recovr_software/staging/
 
@@ -191,18 +188,17 @@ deploy-staging:
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging/nginx"
     - scp nginx/default.conf $DO_USER@$DO_IP:/home/django/recovr_software/staging/nginx/
 
-    # Déploiement avec Docker Compose
+    # Déploiement avec Docker Compose en utilisant le fichier .env
     - |
       ssh -v $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && \
-      docker-compose -f docker_compose.yml build web_staging && \
-      docker-compose -f docker_compose.yml up -d web_staging db nginx && \
-      docker-compose -f docker_compose.yml exec -T web_staging python manage.py collectstatic --noinput && \
-      docker-compose -f docker_compose.yml exec -T web_staging python manage.py migrate"
+      docker-compose --env-file .env -f docker_compose.yml build web_staging && \
+      docker-compose --env-file .env -f docker_compose.yml up -d web_staging db nginx && \
+      docker-compose --env-file .env -f docker_compose.yml exec -T web_staging python manage.py collectstatic --noinput && \
+      docker-compose --env-file .env -f docker_compose.yml exec -T web_staging python manage.py migrate"
 
     # Vérification de l'état des conteneurs
     - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && docker-compose -f docker_compose.yml ps"
 
-    # Message de succès
     - echo "Déploiement de l'environnement staging terminé avec succès!"
   only:
     - master
