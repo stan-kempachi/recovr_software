@@ -191,12 +191,13 @@ deploy-staging:
     # Déploiement avec Docker Compose en utilisant le .env déjà copié
     - |
       ssh -v $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && \
-      docker-compose -f docker_compose.yml build web_staging && \
+      docker-compose -f docker_compose.yml build web && \
       docker-compose -f docker_compose.yml up -d db && \
       sleep 10 && \
-      docker-compose -f docker_compose.yml run --rm web_staging python manage.py migrate && \
-      docker-compose -f docker_compose.yml run --rm web_staging python manage.py collectstatic --noinput && \
-      docker-compose -f docker_compose.yml up -d web_staging nginx"
+      docker-compose -f docker_compose.yml run --rm web env | grep DB_ && \
+      docker-compose -f docker_compose.yml run --rm web python manage.py migrate && \
+      docker-compose -f docker_compose.yml run --rm web python manage.py collectstatic --noinput && \
+      docker-compose -f docker_compose.yml up -d web nginx"
 
     # Vérification de l'état des conteneurs
     - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && docker-compose -f docker_compose.yml ps"
