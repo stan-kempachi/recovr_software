@@ -190,7 +190,7 @@ deploy-staging:
 
     # Transférer la configuration Nginx
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging/nginx"
-    - scp default.conf $DO_USER@$DO_IP:/home/django/recovr_software/staging/nginx/
+    - scp nginx/default.conf $DO_USER@$DO_IP:/home/django/recovr_software/staging/nginx/
 
     # Déploiement avec Docker Compose
     - |
