@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Service de base de données PostgreSQL partagé
+  # PostgreSQL
   db:
     image: postgres:15
     volumes:
@@ -11,10 +11,16 @@ services:
     environment:
       - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
       - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_DB=${DB_NAME:-postgres}
     networks:
       - recovr_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # Application Django - Production
+  # Django Production
   web_production:
     build:
       context: .
@@ -24,28 +30,27 @@ services:
     env_file:
       - .env
     command: >
-      bash -c "python manage.py collectstatic --noinput &&
-               python manage.py migrate &&
-               gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+      bash -c "gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - static_production:/app/staticfiles
       - media_production:/app/media
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      - ENVIRONMENT=production
-      - SECRET_KEY=${PRODUCTION_SECRET_KEY}
-      - DEBUG=False
-      - ALLOWED_HOSTS=recovr.com,www.recovr.com
-      - DB_NAME=recovr_production
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_HOST=db
+      ENVIRONMENT: production
+      SECRET_KEY: ${PRODUCTION_SECRET_KEY}
+      DEBUG: "False"
+      ALLOWED_HOSTS: recovr.com,www.recovr.com
+      DB_NAME: recovr_production
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_HOST: db
     networks:
       - recovr_network
     restart: always
 
-  # Application Django - Staging
+  # Django Staging
   web_staging:
     build:
       context: .
@@ -55,28 +60,27 @@ services:
     env_file:
       - .env
     command: >
-      bash -c "python manage.py collectstatic --noinput &&
-               python manage.py migrate &&
-               gunicorn config.wsgi:application --bind 0.0.0.0:8001"
+      bash -c "gunicorn config.wsgi:application --bind 0.0.0.0:8001"
     volumes:
       - static_staging:/app/staticfiles
       - media_staging:/app/media
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      - ENVIRONMENT=staging
-      - SECRET_KEY=${STAGING_SECRET_KEY}
-      - DEBUG=False
-      - ALLOWED_HOSTS=staging.recovr.com
-      - DB_NAME=recovr_staging
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_HOST=db
+      ENVIRONMENT: staging
+      SECRET_KEY: ${STAGING_SECRET_KEY}
+      DEBUG: "False"
+      ALLOWED_HOSTS: staging.recovr.com
+      DB_NAME: recovr_staging
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_HOST: db
     networks:
       - recovr_network
     restart: always
 
-  # Serveur Nginx pour gérer les requêtes et les fichiers statiques
+  # Nginx
   nginx:
     image: nginx:latest
     ports:
@@ -97,13 +101,14 @@ services:
       - recovr_network
     restart: always
 
-  # Service Certbot pour les certificats SSL
+  # Certbot
   certbot:
     image: certbot/certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    entrypoint: >
+      /bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
 
 volumes:
   postgres_data:
