@@ -197,7 +197,7 @@ deploy-staging:
       docker-compose -f docker_compose.yml run --rm web_staging env | grep DB_ && \
       docker-compose -f docker_compose.yml run --rm web_staging python manage.py migrate && \
       docker-compose -f docker_compose.yml run --rm web_staging python manage.py collectstatic --noinput && \
-      docker-compose -f docker_compose.yml up -d web_staging nginx
+      docker-compose -f docker_compose.yml up -d web_staging nginx"
 
     # Vérification de l'état des conteneurs
     - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && docker-compose -f docker_compose.yml ps"
