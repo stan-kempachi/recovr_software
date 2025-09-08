@@ -185,7 +185,7 @@ deploy-staging:
     # Transférer les fichiers nécessaires
     - rsync -avz --delete -e "ssh -v" ./* $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
-    - scp docker-compose.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
+    - scp docker_compose.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - scp Dockerfile $DO_USER@$DO_IP:/home/django/recovr_software/staging/
 
     # Transférer la configuration Nginx
@@ -195,13 +195,13 @@ deploy-staging:
     # Déploiement avec Docker Compose
     - |
       ssh -v $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && \
-      docker-compose build web_staging && \
-      docker-compose up -d web_staging db nginx && \
-      docker-compose exec -T web_staging python manage.py collectstatic --noinput && \
-      docker-compose exec -T web_staging python manage.py migrate"
+      docker_compose build web_staging && \
+      docker_compose up -d web_staging db nginx && \
+      docker_compose exec -T web_staging python manage.py collectstatic --noinput && \
+      docker_compose exec -T web_staging python manage.py migrate"
 
     # Vérification de l'état des conteneurs
-    - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && docker-compose ps"
+    - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && docker_compose ps"
 
     # Message de succès
     - echo "Déploiement de l'environnement staging terminé avec succès!"
