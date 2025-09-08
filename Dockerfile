@@ -29,9 +29,9 @@ RUN poetry config virtualenvs.create false
 # Installer les dépendances en fonction de l'environnement
 ARG ENVIRONMENT=production
 RUN if [ "$ENVIRONMENT" = "production" ]; then \
-        poetry install --only main --no-interaction --no-ansi; \
+        poetry install --only main --no-interaction --no-ansi --no-root; \
     else \
-        poetry install --no-interaction --no-ansi; \
+        poetry install --no-interaction --no-ansi --no-root; \
     fi
 
 # Copie du reste du code source
