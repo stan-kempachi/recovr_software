@@ -53,7 +53,7 @@ update-changelog:
     - |
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
-      echo "$CI_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+      echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
       chmod 600 ~/.ssh/id_rsa
       ssh-add ~/.ssh/id_rsa
       ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
@@ -98,7 +98,7 @@ update-changelog:
         echo "Changelog mis à jour et poussé vers le dépôt"
       else
         echo "Aucun changement détecté dans CHANGELOG.md ou config/__init__.py"
-      fi   
+      fi
   when: manual
 
 
@@ -173,8 +173,8 @@ deploy-staging:
     - echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
     - echo "DB_USER=$STAGING_DB_USER" >> .env.staging
     - echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-    - echo "DB_HOST=db" >> .env.staging  # Changé pour pointer vers le service Docker
-    - echo "DB_PORT=5432" >> .env.staging
+    - echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging  # Utilisation de la variable définie
+    - echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging  # Utilisation de la variable définie
     - echo "ENVIRONMENT=staging" >> .env.staging
     - echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
 
@@ -243,9 +243,10 @@ deploy-production:
     - echo "DB_ENGINE=django.db.backends.postgresql" >> .env.production
     - echo "DB_NAME=$PRODUCTION_DB_NAME" >> .env.production
     - echo "DB_USER=$PRODUCTION_DB_USER" >> .env.production
+    # Notez que vous devez corriger le nom de la variable dans GitLab (actuellement PRODUCTION_DB_PASSWOR)
     - echo "DB_PASSWORD=$PRODUCTION_DB_PASSWORD" >> .env.production
-    - echo "DB_HOST=localhost" >> .env.production  # Pour une DB locale sur le même droplet
-    - echo "DB_PORT=5432" >> .env.production  # Port standard PostgreSQL
+    - echo "DB_HOST=$PROD_DB_HOST" >> .env.production  # Utilisation de la variable définie
+    - echo "DB_PORT=$PROD_DB_PORT" >> .env.production  # Utilisation de la variable définie
 
     # Cloner le dépôt sur le serveur production
     - ssh -v -o StrictHostKeyChecking=no $DO_USER@$DO_IP "mkdir -p /recovr_software/production"
