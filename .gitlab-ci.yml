@@ -177,7 +177,7 @@ deploy-staging:
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/
 
     # Le copier en .env sur le serveur
-    - ssh $DO_USER@$DO_IP "cp /home/django/recovr_software/staging/.env.staging /home/django/recovr_software/staging/.env"
+    - ssh $DO_USER@$DO_IP "scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env"
 
     # Préparation du répertoire sur le serveur
     - ssh -v $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging/{nginx,certbot/conf,certbot/www}"
