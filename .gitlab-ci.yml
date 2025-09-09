@@ -169,8 +169,8 @@ deploy-staging:
     - echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
     - echo "DB_USER=$STAGING_DB_USER" >> .env.staging
     - echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-    - echo "DB_HOST=db" >> .env.staging
-    - echo "DB_PORT=5432" >> .env.staging
+    - echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
+    - echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
     - echo "ENVIRONMENT=staging" >> .env.staging
 
     # Transférer le .env.staging vers le serveur
@@ -242,10 +242,10 @@ deploy-production:
     - echo "DB_ENGINE=django.db.backends.postgresql" >> .env.production
     - echo "DB_NAME=$PRODUCTION_DB_NAME" >> .env.production
     - echo "DB_USER=$PRODUCTION_DB_USER" >> .env.production
-    # Notez que vous devez corriger le nom de la variable dans GitLab (actuellement PRODUCTION_DB_PASSWOR)
+
     - echo "DB_PASSWORD=$PRODUCTION_DB_PASSWORD" >> .env.production
-    - echo "DB_HOST=$PROD_DB_HOST" >> .env.production  # Utilisation de la variable définie
-    - echo "DB_PORT=$PROD_DB_PORT" >> .env.production  # Utilisation de la variable définie
+    - echo "DB_HOST=$PROD_DB_HOST" >> .env.production
+    - echo "DB_PORT=$PROD_DB_PORT" >> .env.production
 
     # Cloner le dépôt sur le serveur production
     - ssh -v -o StrictHostKeyChecking=no $DO_USER@$DO_IP "mkdir -p /recovr_software/production"
