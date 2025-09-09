@@ -137,18 +137,13 @@ sync-to-github:
 # Déploiement en staging
 deploy-staging:
   stage: deploy-staging
-  image: "docker:20.10.16"
+  image: docker:20.10.16
   services:
     - docker:20.10.16-dind
   variables:
     DO_IP: $DO_IP
     DO_USER: $DO_USER
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_TLS_VERIFY: 1
-    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
-
   before_script:
     - apk add --no-cache openssh-client bash rsync
     - mkdir -p ~/.ssh
@@ -156,53 +151,23 @@ deploy-staging:
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh -vT $DO_USER@$DO_IP "echo 'Test de connexion SSH réussi'"
-
   script:
-    # Création du fichier .env pour l'environnement de staging
-    - echo "# Parametres generaux pour staging" > .env.staging
-    - echo "DEBUG=False" >> .env.staging
-    - echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
-    - echo "ALLOWED_HOSTS=$DO_IP,recovr-staging.example.com" >> .env.staging
-    - echo "" >> .env.staging
-    - echo "# Database - Staging" >> .env.staging
-    - echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
-    - echo "STAGING_DB_NAME=$STAGING_DB_NAME" >> .env.staging
-    - echo "STAGING_DB_USER=$STAGING_DB_USER" >> .env.staging
-    - echo "STAGING_DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-    - echo "STAGING_DB_HOST=$STAGING_DB_HOST" >> .env.staging
-    - echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
-    - echo "ENVIRONMENT=staging" >> .env.staging
-
-    # Transférer le .env.staging vers le serveur
-    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
-
-    # Préparation du répertoire sur le serveur
-    - ssh -v $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging/{nginx,certbot/conf,certbot/www}"
-
-    # Transférer les fichiers nécessaires
-    - rsync -avz --delete -e "ssh -v" ./* $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - scp docker_compose.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - scp Dockerfile $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-
-    # Transférer la configuration Nginx
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging/nginx"
-    - scp nginx/default.conf $DO_USER@$DO_IP:/home/django/recovr_software/staging/nginx/
-
-    # Déploiement avec Docker Compose en utilisant le .env déjà copié
+    # Préparer le .env pour staging
+    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - |
-      ssh -v $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && \
-      docker-compose -f docker_compose.yml build web_staging && \
-      docker-compose -f docker_compose.yml up -d db && \
-      sleep 10 && \
-      docker-compose -f docker_compose.yml run --rm web_staging env | grep DB_ && \
-      docker-compose -f docker_compose.yml run --rm web_staging python manage.py migrate && \
-      docker-compose -f docker_compose.yml run --rm web_staging python manage.py collectstatic --noinput && \
-      docker-compose -f docker_compose.yml up -d web_staging nginx"
-
-    # Vérification de l'état des conteneurs
-    - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && docker-compose -f docker_compose.yml ps"
-
-    - echo "Déploiement de l'environnement staging terminé avec succès!"
+      echo "# Staging environment" > .env.staging
+      echo "DEBUG=False" >> .env.staging
+      echo "SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
+      echo "ALLOWED_HOSTS=$DO_IP,recovr-staging.example.com" >> .env.staging
+      echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
+      echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
+      echo "DB_USER=$STAGING_DB_USER" >> .env.staging
+      echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
+      echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
+      echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
+      echo "ENVIRONMENT=staging" >> .env.staging
+    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
+    - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && docker-compose -f docker_compose.yml build web_staging && docker-compose -f docker_compose.yml run --rm web_staging python manage.py migrate && docker-compose -f docker_compose.yml run --rm web_staging python manage.py collectstatic --noinput && docker-compose -f docker_compose.yml up -d web_staging nginx"
   only:
     - master
   when: manual
