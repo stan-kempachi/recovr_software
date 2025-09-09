@@ -161,15 +161,15 @@ deploy-staging:
     # Création du fichier .env pour l'environnement de staging
     - echo "# Parametres generaux pour staging" > .env.staging
     - echo "DEBUG=False" >> .env.staging
-    - echo "SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
+    - echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
     - echo "ALLOWED_HOSTS=$DO_IP,recovr-staging.example.com" >> .env.staging
     - echo "" >> .env.staging
     - echo "# Database - Staging" >> .env.staging
     - echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
-    - echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
-    - echo "DB_USER=$STAGING_DB_USER" >> .env.staging
-    - echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-    - echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
+    - echo "STAGING_DB_NAME=$STAGING_DB_NAME" >> .env.staging
+    - echo "STAGING_DB_USER=$STAGING_DB_USER" >> .env.staging
+    - echo "STAGING_DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
+    - echo "STAGING_DB_HOST=$STAGING_DB_HOST" >> .env.staging
     - echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
     - echo "ENVIRONMENT=staging" >> .env.staging
 
