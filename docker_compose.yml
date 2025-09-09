@@ -38,7 +38,7 @@ services:
       args:
         - ENVIRONMENT=staging
     env_file:
-      - .env.staging
+      - .env
     command: >
       bash -c "gunicorn config.wsgi:application --bind 0.0.0.0:8001"
     volumes:
