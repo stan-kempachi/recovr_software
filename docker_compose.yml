@@ -72,10 +72,10 @@ services:
       SECRET_KEY: ${STAGING_SECRET_KEY}
       DEBUG: "False"
       ALLOWED_HOSTS: staging.recovr.com
-      DB_NAME: recovr_staging
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DB_HOST: db
+      DB_NAME: ${STAGING_DB_NAME}
+      DB_USER: ${STAGING_DB_USER:-postgres}
+      DB_PASSWORD: ${STAGING_DB_PASSWORD:-postgres}
+      DB_HOST: ${STAGING_DB_HOST}
     networks:
       - recovr_network
     restart: always
