@@ -28,7 +28,7 @@ COPY pyproject.toml poetry.lock* /app/
 RUN poetry config virtualenvs.create false
 
 # Régénérer le fichier lock si nécessaire
-RUN poetry lock --no-update
+RUN poetry lock
 
 # Installer les dépendances en fonction de l'environnement
 ARG ENVIRONMENT=production
