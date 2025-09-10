@@ -154,10 +154,8 @@ deploy-staging:
     DO_USER: $DO_USER
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
   before_script:
-    - pip install poetry
-    - poetry lock --no-update
-
-    - apk add --no-cache openssh-client bash rsync
+    - apk add --no-cache openssh-client bash rsync python3 py3-pip
+    - pip3 install poetry
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
@@ -180,11 +178,11 @@ deploy-staging:
       echo "ENVIRONMENT=staging" >> .env.staging
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
     - ssh $DO_USER@$DO_IP "
-        cd /home/django/recovr_software/staging &&
-        docker-compose --env-file .env -f docker_compose.yml build web_staging &&
-        docker-compose --env-file .env -f docker_compose.yml run --rm web_staging python manage.py migrate &&
-        docker-compose --env-file .env -f docker_compose.yml run --rm web_staging python manage.py collectstatic --noinput &&
-        docker-compose --env-file .env -f docker_compose.yml up -d web_staging nginx"
+      cd /home/django/recovr_software/staging &&
+      docker-compose --env-file .env -f docker_compose.yml build web_staging &&
+      docker-compose --env-file .env -f docker_compose.yml run --rm web_staging python manage.py migrate &&
+      docker-compose --env-file .env -f docker_compose.yml run --rm web_staging python manage.py collectstatic --noinput &&
+      docker-compose --env-file .env -f docker_compose.yml up -d web_staging nginx"
   only:
     - master
 
