@@ -203,6 +203,9 @@ deploy-production:
     # Installation des dépendances nécessaires
     - apk add --no-cache openssh-client bash
     - eval $(ssh-agent -s)
+    # Créer le répertoire .ssh avant d'y écrire
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
     - echo "$CI_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-add ~/.ssh/id_rsa
