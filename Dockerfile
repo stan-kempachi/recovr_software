@@ -21,7 +21,7 @@ RUN pip install --upgrade pip \
     && pip install poetry
 
 # Copie des fichiers de dépendances
-COPY pyproject.toml poetry.lock* /app/
+COPY pyproject.toml /app/
 
 # Configuration de Poetry pour ne pas créer d'environnement virtuel
 # (puisque le conteneur est déjà isolé)
