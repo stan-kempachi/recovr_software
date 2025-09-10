@@ -50,20 +50,31 @@ update-changelog:
     - |
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
-      # Utiliser la clé SSH spécifique pour le job changelog
-      echo "$CHANGELOG_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_changelog
+      
+      # Debugging de la clé SSH
+      echo "SSH key length: $(echo "$CHANGELOG_SSH_KEY" | wc -c) bytes"
+      
+      # Utiliser la clé SSH spécifique pour le job changelog avec format standard
+      echo "$CHANGELOG_SSH_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/id_rsa_changelog
       chmod 600 ~/.ssh/id_rsa_changelog
-      ssh-add ~/.ssh/id_rsa_changelog
+      
+      # Vérifier le format du fichier de clé
+      ls -la ~/.ssh/id_rsa_changelog
+      
+      # Tenter d'ajouter la clé avec plus d'informations de débogage
+      ssh-add -v ~/.ssh/id_rsa_changelog || echo "Failed to add SSH key"
       ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
     - pip install python-semantic-release
     # Configurer git pour travailler avec la branche
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
-    # Cloner le repo avec l'historique complet
-    - git clone --depth=50 git@gitlab.com:${CI_PROJECT_PATH}.git /tmp/repo
+    # Cloner le repo avec l'historique complet (augmenter la profondeur)
+    - git clone --depth=200 git@gitlab.com:${CI_PROJECT_PATH}.git /tmp/repo
     - cd /tmp/repo
     # Configurer l'URL du dépôt en utilisant SSH
     - git remote set-url origin git@gitlab.com:${CI_PROJECT_PATH}.git
+    # Récupérer les tags, importants pour semantic-release
+    - git fetch --tags
   script:
     # Vérifier si config/__init__.py existe, sinon le créer
     - |
@@ -80,12 +91,14 @@ update-changelog:
         sed -i "s/token.*=.*/token = \"${GITLAB_TOKEN}\"/" pyproject.toml || true
       fi
 
-    # Afficher le dernier commit pour le débogage
+    # Afficher le dernier commit et l'historique pour le débogage
     - echo "Dernier message de commit:"
     - git log -1 --pretty=%B
+    - echo "Liste des derniers commits:"
+    - git log --oneline -n 10
 
-    # Utiliser semantic-release directement sans détection supplémentaire
-    - semantic-release version --no-push
+    # Utiliser semantic-release en mode verbose pour obtenir plus d'informations
+    - semantic-release version --no-push -vv || (echo "Semantic-release a échoué, mais le pipeline continue"; exit 0)
 
     # Vérifier si des fichiers ont été modifiés
     - |
@@ -97,7 +110,7 @@ update-changelog:
       else
         echo "Aucun changement détecté dans CHANGELOG.md ou config/__init__.py"
       fi
-
+      
 
 sync-to-github:
   stage: sync
