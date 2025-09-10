@@ -154,6 +154,9 @@ deploy-staging:
     DO_USER: $DO_USER
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
   before_script:
+    - pip install poetry
+    - poetry lock --no-update
+
     - apk add --no-cache openssh-client bash rsync
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
