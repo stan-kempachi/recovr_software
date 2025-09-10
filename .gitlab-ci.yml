@@ -50,19 +50,20 @@ update-changelog:
     - |
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
-      echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      ssh-add ~/.ssh/id_rsa
+      # Utiliser la clé SSH spécifique pour le job changelog
+      echo "$CHANGELOG_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_changelog
+      chmod 600 ~/.ssh/id_rsa_changelog
+      ssh-add ~/.ssh/id_rsa_changelog
       ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
     - pip install python-semantic-release
     # Configurer git pour travailler avec la branche
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
-    # Au lieu de faire un checkout, cloner le repo avec l'historique complet
+    # Cloner le repo avec l'historique complet
     - git clone --depth=50 git@gitlab.com:${CI_PROJECT_PATH}.git /tmp/repo
     - cd /tmp/repo
-    # Configurer l'URL du dépôt en utilisant SSH au lieu de HTTPS
-    - git remote set-url origin git@gitlab.com:django1361117/recovr_software.git
+    # Configurer l'URL du dépôt en utilisant SSH
+    - git remote set-url origin git@gitlab.com:${CI_PROJECT_PATH}.git
   script:
     # Vérifier si config/__init__.py existe, sinon le créer
     - |
