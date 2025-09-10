@@ -2,6 +2,155 @@
 
 <!-- version list -->
 
+## v1.2.0 (2025-09-10)
+
+### Bug Fixes
+
+- .gitlab-ci.yml to specify Docker Compose file path
+  ([`b4c53ec`](https://gitlab.com/django1361117/recovr_software/-/commit/b4c53ec1313a7e04ef7e5265ac1e4e12c9340c90))
+
+- Add __init__.py to initialize the package
+  ([`2cc826e`](https://gitlab.com/django1361117/recovr_software/-/commit/2cc826e96c129739c094da40c0dc8f81f146a74a))
+
+- Add env file to docker-compose command
+  ([`ae56aef`](https://gitlab.com/django1361117/recovr_software/-/commit/ae56aef4efa7de1f83dd69cb5d721d5796f0030b))
+
+- Add manual triggers and improve deployment configuration
+  ([`e625f1a`](https://gitlab.com/django1361117/recovr_software/-/commit/e625f1abd78f834d4308fc72b7fc24917038c8ea))
+
+- CI to use environment variables for dynamic configuration
+  ([`1a5dda0`](https://gitlab.com/django1361117/recovr_software/-/commit/1a5dda0b36f3072affb7309ec5b842172166ebd7))
+
+- Correct docker-compose syntax in deployment script
+  ([`6b98046`](https://gitlab.com/django1361117/recovr_software/-/commit/6b98046d58bafe83b331056359e016dab3c75dc8))
+
+- Correct docker-compose syntax in deployment script
+  ([`94ff5d3`](https://gitlab.com/django1361117/recovr_software/-/commit/94ff5d3a915a910d11fae6ba8b85491571bfbf44))
+
+- Correct path to Nginx config in staging deployment
+  ([`91c0cb5`](https://gitlab.com/django1361117/recovr_software/-/commit/91c0cb512fe9aa58560f04fd1990c22ce83057fc))
+
+- Docker-compose
+  ([`561bf76`](https://gitlab.com/django1361117/recovr_software/-/commit/561bf76e648e9fb21c8c7a9e96fc7a02a9ba3ee1))
+
+- Environment file for dynamic configuration
+  ([`e99c85e`](https://gitlab.com/django1361117/recovr_software/-/commit/e99c85ea7ca7610d6ae41f35e2757d4cae58b7dc))
+
+- Environment file for dynamic configuration
+  ([`d2117d7`](https://gitlab.com/django1361117/recovr_software/-/commit/d2117d763b3445daa5e573c4eeebf4fffe5e851f))
+
+- Environment file for dynamic configuration
+  ([`e7ea3ac`](https://gitlab.com/django1361117/recovr_software/-/commit/e7ea3ac0daf03b65be766ed556be5f44c39e6f3e))
+
+- Environment file for dynamic configuration
+  ([`10591c8`](https://gitlab.com/django1361117/recovr_software/-/commit/10591c809bf7d6234b867e99cb7fc39068ce7d7c))
+
+- Environment file for dynamic configuration
+  ([`468fbe4`](https://gitlab.com/django1361117/recovr_software/-/commit/468fbe4f77f0e140420098eb70116eb439d5369f))
+
+- Environment file for dynamic configuration
+  ([`1d4929e`](https://gitlab.com/django1361117/recovr_software/-/commit/1d4929ed70427a6c74b3c35c1cfcf17cc03853ce))
+
+- Environment file for dynamic configuration
+  ([`768d117`](https://gitlab.com/django1361117/recovr_software/-/commit/768d117de8413c25544554197d3adf0b9b32b4ba))
+
+- Environment file for dynamic configuration
+  ([`d358581`](https://gitlab.com/django1361117/recovr_software/-/commit/d358581254690e96f0179f7785e5f2bf5575ba1d))
+
+- Environment file for dynamic configuration
+  ([`783217a`](https://gitlab.com/django1361117/recovr_software/-/commit/783217a2b33d1b6a63b2f254c17dd2cc08772cd9))
+
+- Environment file for dynamic configuration
+  ([`32a6b4d`](https://gitlab.com/django1361117/recovr_software/-/commit/32a6b4d5fe5a16b95c40a7683c1434fb74de1ae5))
+
+- Environment file for dynamic configuration
+  ([`4688392`](https://gitlab.com/django1361117/recovr_software/-/commit/4688392b5bd0812befbcd32c89589fc01285b936))
+
+- Environment file for dynamic configuration
+  ([`5b1324c`](https://gitlab.com/django1361117/recovr_software/-/commit/5b1324ce96ec6409af47355e32564ca3214edc1e))
+
+- Environment file for dynamic configuration
+  ([`342a8d7`](https://gitlab.com/django1361117/recovr_software/-/commit/342a8d7ca64197784e6798b26dddd5e45bc85ba1))
+
+- Environment file for dynamic configuration
+  ([`7b2494f`](https://gitlab.com/django1361117/recovr_software/-/commit/7b2494f47020e9ba474ccbee39eb46fc52ea3400))
+
+- Environment file for dynamic configuration
+  ([`7fa675a`](https://gitlab.com/django1361117/recovr_software/-/commit/7fa675ac5f9af9ce888afa1e1aa7674cd37e661f))
+
+- Environment file for dynamic configuration
+  ([`857e5d9`](https://gitlab.com/django1361117/recovr_software/-/commit/857e5d9ab54f02c09178921ed86dfaf4e2b98ccb))
+
+- Environment file for dynamic configuration
+  ([`a803f8d`](https://gitlab.com/django1361117/recovr_software/-/commit/a803f8df06cbe4e332f6ad0d8658f6254f616d9f))
+
+- Environment file for dynamic configuration
+  ([`f1bab24`](https://gitlab.com/django1361117/recovr_software/-/commit/f1bab24c85e0e8e3a1ade9ff5f73b12274612e04))
+
+- Environment file for dynamic configuration .env.staging -> .env
+  ([`c44a9b3`](https://gitlab.com/django1361117/recovr_software/-/commit/c44a9b3c002085826749d51f6009093c4743bdb1))
+
+- Poetry package installation in CI pipeline
+  ([`55fe9c1`](https://gitlab.com/django1361117/recovr_software/-/commit/55fe9c15efb5a090ac5b0951c68480e243e0bc54))
+
+- Resolve only/rules conflict in CI configuration
+  ([`c387145`](https://gitlab.com/django1361117/recovr_software/-/commit/c38714595bb75ed94c9c7392e736346e786e4c5c))
+
+- Simplify and fix SSH configuration in GitLab CI.
+  ([`04152d9`](https://gitlab.com/django1361117/recovr_software/-/commit/04152d9194e9f3d78ca3c9ae7af24e292f48e3ac))
+
+- Update Poetry install command to include --no-root option
+  ([`a85cfda`](https://gitlab.com/django1361117/recovr_software/-/commit/a85cfdacd16d69ebb6666548861baa15beaea658))
+
+- **ci**: Improve SSH connection reliability in deployment jobs
+  ([`18df6f2`](https://gitlab.com/django1361117/recovr_software/-/commit/18df6f29f2a018d97d70aa0a130462a9c5cb4078))
+
+### Continuous Integration
+
+- Add Gunicorn and update CI SSH key setup
+  ([`7efeacc`](https://gitlab.com/django1361117/recovr_software/-/commit/7efeacc462aa748f4f8762d14c1cfb4fa51c263a))
+
+- Add Gunicorn and update CI SSH key setup
+  ([`a0494b9`](https://gitlab.com/django1361117/recovr_software/-/commit/a0494b94a1259e4dedbfd9ef5e43aa9ebc925406))
+
+- Add separate stages for staging and production deployment
+  ([`b2668d7`](https://gitlab.com/django1361117/recovr_software/-/commit/b2668d7509e9b3906841eb74b27e8a17616047d5))
+
+- Automate pipeline jobs and prepare for production deployment
+  ([`2fd2ce3`](https://gitlab.com/django1361117/recovr_software/-/commit/2fd2ce39dc2a5b83c2ed8d39a969d76e797f590c))
+
+### Features
+
+- Add Docker basic configuration
+  ([`6ca19b7`](https://gitlab.com/django1361117/recovr_software/-/commit/6ca19b72306124c8f5ee2e49422c4baffbf75439))
+
+- Configure PostgreSQL for local development environment"
+  ([`acdcf4d`](https://gitlab.com/django1361117/recovr_software/-/commit/acdcf4d74bc3c6e5dfc7848aa2b79af93bd49f57))
+
+- Implement Docker-based deployment for staging environment
+  ([`1be6107`](https://gitlab.com/django1361117/recovr_software/-/commit/1be61071b2abfb5e2b7bbc2d19fef0cf8c5fee89))
+
+- Successful staging deployment
+  ([`2f99b1f`](https://gitlab.com/django1361117/recovr_software/-/commit/2f99b1f406000178124aad266d5229e218a1bc75))
+
+- Successful staging deployment
+  ([`fcac5f5`](https://gitlab.com/django1361117/recovr_software/-/commit/fcac5f55ac0f34a8f9151b4b147631a236ffdb62))
+
+- Successful staging deployment
+  ([`5b53531`](https://gitlab.com/django1361117/recovr_software/-/commit/5b535311215cf9a08ef195c454331ceb6bd12bcd))
+
+- Update NGINX configs and CI/CD pipelines for new domains
+  ([`3935c03`](https://gitlab.com/django1361117/recovr_software/-/commit/3935c03347defe43f6a8d8002cd35875c3cdcce5))
+
+- **infra**: Add Nginx configuration for production and staging environments
+  ([`4c0d090`](https://gitlab.com/django1361117/recovr_software/-/commit/4c0d09082ba50c43732a44cef79f90dd0c282876))
+
+### Refactoring
+
+- Settings for environment-specific configurations
+  ([`7e375db`](https://gitlab.com/django1361117/recovr_software/-/commit/7e375db72243aba374c062027669b3a471e42854))
+
+
 ## v1.1.0 (2025-09-03)
 
 ### Bug Fixes
