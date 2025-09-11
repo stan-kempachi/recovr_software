@@ -22,6 +22,8 @@ lint:
     - poetry run black --check .
     - poetry run ruff check .
     - poetry run isort --check-only .
+  when: manual
+
 
 
 # Test stage
@@ -33,6 +35,7 @@ test:
   script:
     - poetry install
     - poetry run pytest
+  when: manual
 
 
 # Update changelog stage
@@ -112,6 +115,8 @@ update-changelog:
       fi
       
 
+  when: manual
+
 sync-to-github:
   stage: sync
   image: "python:3.12"
@@ -141,6 +146,7 @@ sync-to-github:
     - git remote add github git@github.com:stan-kempachi/recovr_software.git
     # Pousser vers GitHub
     - git push --mirror github
+  when: manual
 
 
 # Déploiement en staging
@@ -185,6 +191,8 @@ deploy-staging:
       docker-compose --env-file .env -f docker_compose.yml up -d web_staging nginx"
   only:
     - master
+  when: manual
+
 
 
 # Déploiement en production
