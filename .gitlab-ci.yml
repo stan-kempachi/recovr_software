@@ -240,8 +240,8 @@ deploy-production:
   only:
     - master
   when: manual
-  needs:
-    - deploy-staging
+  # needs:
+  #   - deploy-staging
   environment:
     name: production
     url: https://recovr.com
