@@ -2,6 +2,71 @@
 
 <!-- version list -->
 
+## v1.3.0 (2025-09-12)
+
+### Bug Fixes
+
+- Ci add option --ignore-installed packaging
+  ([`6be3432`](https://gitlab.com/django1361117/recovr_software/-/commit/6be34322b7ebfe21ddc293b6e062c8938fbf4a44))
+
+- Harmonize environment variable names between Docker and Django
+  ([`bcaab13`](https://gitlab.com/django1361117/recovr_software/-/commit/bcaab136539e2d7724ed154933b11766d5db0f32))
+
+- Pipeline jobs to run manually by default to test production deployment
+  ([`91eedf0`](https://gitlab.com/django1361117/recovr_software/-/commit/91eedf0166bc80e7fa1b35f58727f5ba1e0ad6e9))
+
+- Refactor environment variable names for production setup
+  ([`8d9cd8d`](https://gitlab.com/django1361117/recovr_software/-/commit/8d9cd8d3e63497e39a9ebf94d3bc5b36bb29c390))
+
+- Remove default value for PRODUCTION_DB_PORT in docker compose
+  ([`6e0b8a0`](https://gitlab.com/django1361117/recovr_software/-/commit/6e0b8a0787ad71671eeaeea142455a0cc9a01e1f))
+
+- Remove redundant default value for DB_PORT in docker_compose.yml
+  ([`32f197d`](https://gitlab.com/django1361117/recovr_software/-/commit/32f197d704faddb22f53f44d730b8d7ea0a08e07))
+
+- Simplify deployment script in GitLab CI/CD pipeline
+  ([`8e91746`](https://gitlab.com/django1361117/recovr_software/-/commit/8e91746afdbec4191e7ac7d3851ed16568b70469))
+
+- Update CI to use SSH_PRIVATE_KEY for authentication
+  ([`85e7a93`](https://gitlab.com/django1361117/recovr_software/-/commit/85e7a939e3058853b2a5925b7da46bd35cd90a3e))
+
+- Update Dockerfile file
+  ([`548625b`](https://gitlab.com/django1361117/recovr_software/-/commit/548625b68318d08e9b4113927310113adaa8d829))
+
+- Update environment variable keys in docker_compose.yml
+  ([`1f58bf7`](https://gitlab.com/django1361117/recovr_software/-/commit/1f58bf718a56bdfc54f586c682f35396fb1f92c3))
+
+- Update environment variable references in CI and Docker setup
+  ([`444d361`](https://gitlab.com/django1361117/recovr_software/-/commit/444d361c81262c5d2291638641f3293e17712687))
+
+- Update poetry.lock file
+  ([`30678a4`](https://gitlab.com/django1361117/recovr_software/-/commit/30678a45d82ff13b55bfa1437ef8bbccae57e259))
+
+### Continuous Integration
+
+- Disable 'needs' dependency for production deployment
+  ([`1bb2188`](https://gitlab.com/django1361117/recovr_software/-/commit/1bb218823c5d1047b59bbecea49fffcb74599efd))
+
+### Features
+
+- Update to v1.2.0 with CI improvements and environment configs
+  ([`ee18d53`](https://gitlab.com/django1361117/recovr_software/-/commit/ee18d532ee0c3a1bd78166fb9d37f14f0b88cfad))
+
+- **ci**: Add production deployment pipeline
+  ([`83af926`](https://gitlab.com/django1361117/recovr_software/-/commit/83af926b5481ad583d4ba1c8eef29bc26759e5a3))
+
+### Refactoring
+
+- Poetry.lock from Dockerfile COPY instruction
+  ([`6d4147f`](https://gitlab.com/django1361117/recovr_software/-/commit/6d4147f3737bb5ef49a0208dff5f034b3ae639ba))
+
+- Production deployment pipeline in .gitlab-ci.yml
+  ([`b3c8351`](https://gitlab.com/django1361117/recovr_software/-/commit/b3c8351f1869e58ec7f6eb71c568db83c0d67948))
+
+- Remove --no-update flag from poetry lock command
+  ([`881c4e3`](https://gitlab.com/django1361117/recovr_software/-/commit/881c4e3d4107653a104f9368c8b303edc9ad7bb3))
+
+
 ## v1.2.0 (2025-09-10)
 
 ### Bug Fixes
