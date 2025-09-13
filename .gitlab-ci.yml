@@ -98,7 +98,7 @@ update-changelog:
 
 sync-to-github:
   stage: sync
-  image: "alpine/git:latest"
+  image: "python:3.12"
   only:
     - master
   needs:
@@ -109,17 +109,22 @@ sync-to-github:
     - |
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
-      echo "$GITHUB_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      ssh-add ~/.ssh/id_rsa
+      # Utiliser la clé SSH spécifique pour GitHub
+      echo "$GITHUB_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_github
+      chmod 600 ~/.ssh/id_rsa_github
+      ssh-add ~/.ssh/id_rsa_github
       ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+    # Configurer git pour travailler avec GitHub
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
   script:
+    # Cloner le dépôt GitLab actuel
     - git clone --mirror $CI_REPOSITORY_URL gitlab_repo
     - cd gitlab_repo
+    # Configurer le dépôt GitHub distant
     - git remote add github git@github.com:stan-kempachi/recovr_software.git
-    - git push --mirror github || echo "GitHub sync failed, continuing..."
+    # Pousser vers GitHub
+    - git push --mirror github
 
 # Template pour les déploiements
 .deploy_template: &deploy_template
