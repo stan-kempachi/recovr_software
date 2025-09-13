@@ -166,6 +166,11 @@ deploy-staging:
   script:
     # Préparer le .env pour staging
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
+    # Créer un fichier .env vide
+    - ssh $DO_USER@$DO_IP "touch /home/django/recovr_software/staging/.env"
+
+    # Préparer le .env pour staging
+    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - |
       echo "# Staging environment" > .env.staging
       echo "DEBUG=False" >> .env.staging
@@ -178,7 +183,7 @@ deploy-staging:
       echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
       echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
       echo "ENVIRONMENT=staging" >> .env.staging
-    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
+    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
       docker-compose --env-file .env -f docker_compose.yml build web_staging &&
@@ -210,6 +215,9 @@ deploy-production:
   script:
     # Préparer le .env pour production
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production"
+    # Créer un fichier .env vide
+    - ssh $DO_USER@$DO_IP "touch /home/django/recovr_software/production/.env"
+    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production"
     - |
       echo "# Production environment" > .env.production
       echo "DEBUG=False" >> .env.production
@@ -222,7 +230,7 @@ deploy-production:
       echo "PRODUCTION_DB_HOST=$PRODUCTION_DB_HOST" >> .env.production
       echo "PRODUCTION_DB_PORT=${PRODUCTION_DB_PORT:-5432}" >> .env.production
       echo "ENVIRONMENT=production" >> .env.production
-    - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env
+    - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env.production
     - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/production && docker-compose --env-file .env -f docker_compose.yml build web_production && docker-compose --env-file .env -f docker_compose.yml run --rm web_production python manage.py migrate && docker-compose --env-file .env -f docker_compose.yml run --rm web_production python manage.py collectstatic --noinput && docker-compose --env-file .env -f docker_compose.yml up -d web_production nginx"
     # Nettoyage des images Docker inutilisées pour libérer de l'espace
     - ssh $DO_USER@$DO_IP "docker image prune -f"

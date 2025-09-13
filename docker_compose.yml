@@ -8,9 +8,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - ENVIRONMENT=staging
+      - .env.staging
     env_file:
-      - .env
+      - ${ENV_STAGING_FILE:-.env.staging}
     command: >
       bash -c "gunicorn config.wsgi:application --bind 0.0.0.0:8001"
     volumes:
@@ -39,7 +39,7 @@ services:
       args:
         - ENVIRONMENT=production
     env_file:
-      - .env
+      - .env.production
     command: >
       bash -c "gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
@@ -63,8 +63,8 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      - "8080:80"
-      - "443:443"
+      - "8081:80"
+      - "444:443"
     volumes:
       - ./nginx:/etc/nginx/conf.d
       - static_production:/var/www/production/static
