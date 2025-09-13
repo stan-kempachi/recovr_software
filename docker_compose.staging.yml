@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  web_staging:
+    container_name: recovr_web_staging
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=staging
+    env_file:
+      - .env.staging
+    command: >
+      bash -c "python manage.py migrate --noinput && 
+               python manage.py collectstatic --noinput && 
+               gunicorn config.wsgi:application --bind 0.0.0.0:8001 --workers 2 --timeout 120 --reload"
+    volumes:
+      - static_staging:/app/staticfiles
+      - media_staging:/app/media
+    environment:
+      ENVIRONMENT: staging
+      SECRET_KEY: ${STAGING_SECRET_KEY}
+      DEBUG: "True"  # Plus de debug en staging
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DB_NAME: ${STAGING_DB_NAME}
+      DB_USER: ${STAGING_DB_USER}
+      DB_PASSWORD: ${STAGING_DB_PASSWORD}
+      DB_HOST: ${STAGING_DB_HOST}
+      DB_PORT: ${STAGING_DB_PORT:-5432}
+    ports:
+      - "8001:8001"  # Exposer le port pour debug si nécessaire
+    networks:
+      - recovr_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/health/ || wget --quiet --tries=1 --spider http://localhost:8001/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  recovr_network:
+    external: true
+
+volumes:
+  static_staging:
+    external: true
+  media_staging:
+    external: true

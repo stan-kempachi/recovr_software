@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "reporting",
     "recovr_software",
     "tests",
+    "health",
     # Dépendances tierces
     "rest_framework",
     "corsheaders",
