@@ -186,10 +186,10 @@ deploy-staging:
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
-      docker-compose --env-file .env -f docker_compose.yml build web_staging &&
-      docker-compose --env-file .env -f docker_compose.yml run --rm web_staging python manage.py migrate &&
-      docker-compose --env-file .env -f docker_compose.yml run --rm web_staging python manage.py collectstatic --noinput &&
-      docker-compose --env-file .env -f docker_compose.yml up -d web_staging nginx"
+      docker-compose --env-file .env -f docker_compose.yml --project-name recovr build web_staging &&
+      docker-compose --env-file .env -f docker_compose.yml --project-name recovr run --rm web_staging python manage.py migrate &&
+      docker-compose --env-file .env -f docker_compose.yml --project-name recovr run --rm web_staging python manage.py collectstatic --noinput &&
+      docker-compose --env-file .env -f docker_compose.yml --project-name recovr up -d web_staging nginx"
   only:
     - master
 
@@ -231,7 +231,7 @@ deploy-production:
       echo "PRODUCTION_DB_PORT=${PRODUCTION_DB_PORT:-5432}" >> .env.production
       echo "ENVIRONMENT=production" >> .env.production
     - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env.production
-    - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/production && docker-compose --env-file .env -f docker_compose.yml build web_production && docker-compose --env-file .env -f docker_compose.yml run --rm web_production python manage.py migrate && docker-compose --env-file .env -f docker_compose.yml run --rm web_production python manage.py collectstatic --noinput && docker-compose --env-file .env -f docker_compose.yml up -d web_production nginx"
+    - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/production && docker-compose --env-file .env -f docker_compose.yml --project-name recovr build web_production && docker-compose --env-file .env -f docker_compose.yml --project-name recovr run --rm web_production python manage.py migrate && docker-compose --env-file .env -f docker_compose.yml --project-name recovr run --rm web_production python manage.py collectstatic --noinput && docker-compose --env-file .env -f docker_compose.yml --project-name recovr up -d web_production nginx"
     # Nettoyage des images Docker inutilisées pour libérer de l'espace
     - ssh $DO_USER@$DO_IP "docker image prune -f"
   only:
