@@ -208,8 +208,8 @@ deploy-production:
   script:
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
-    - scp docker_compose.production.yml $DO_USER@$DO_PROD_IP:/home/django/recovr_software/production/
-    - scp docker_compose.proxy.yml $DO_USER@$DO_PROD_IP:/home/django/recovr_software/
+    - scp docker_compose.production.yml $DO_USER@$DO_IP:/home/django/recovr_software/production/
+    - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
    # Préparer le .env pour production
     - |
       echo "# Production environment" > .env.production
@@ -242,7 +242,7 @@ deploy-production:
 # Job optionnel pour déployer le proxy nginx (à lancer après staging et production)
 deploy-proxy:
   <<: *deploy_template
-  stage: deploy-production
+  stage: deploy-proxy
   before_script:
     - apt-get update && apt-get install -y openssh-client rsync
     - eval $(ssh-agent -s)
