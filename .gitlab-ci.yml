@@ -148,6 +148,8 @@ sync-to-github:
 deploy-staging:
   stage: deploy-staging
   script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
@@ -172,6 +174,8 @@ deploy-staging:
 deploy-production:
   stage: deploy-production
   script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
     - ssh-keyscan -H $DO_PROD_IP >> ~/.ssh/known_hosts
     - ssh $DO_USER@$DO_PROD_IP "mkdir -p /home/django/recovr_software/production"
     - ssh $DO_USER@$DO_PROD_IP "mkdir -p /home/django/recovr_software/logs/nginx"
