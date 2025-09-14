@@ -171,6 +171,9 @@ docker-compose exec web_staging python manage.py migrate
 
 # Créer un superutilisateur pour l'environnement de staging
 docker-compose exec web_staging python manage.py createsuperuser
+
+# Si vous avez des ports utilisé sur le serveur stopper et supprimer les dockers
+docker stop $(docker ps -q) && docker rm $(docker ps -aq)
 ```
 
 ## Versionnement et CHANGELOG
