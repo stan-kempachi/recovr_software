@@ -4,7 +4,7 @@ import os
 DEBUG = False
 
 # Permettre l'accès depuis le sous-domaine de staging
-ALLOWED_HOSTS = ["staging.recovr.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["157.230.21.181", "staging.recovr.com", "localhost", "127.0.0.1"]
 
 # Base de données PostgreSQL pour l'environnement staging
 DATABASES = {
@@ -31,3 +31,4 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+SECURE_REDIRECT_EXEMPT = [r"^health/$"]

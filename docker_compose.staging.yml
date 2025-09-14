@@ -33,7 +33,7 @@ services:
       - recovr_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8001/health/ || wget --quiet --tries=1 --spider http://localhost:8001/health/ || exit 1"]
+      test: ["CMD-SHELL", "curl -fsSL  http://localhost:8001/health/ || wget --quiet --tries=1 --spider http://localhost:8001/health/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

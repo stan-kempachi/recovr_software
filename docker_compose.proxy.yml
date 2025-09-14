@@ -8,7 +8,7 @@ services:
       - "80:80"
       - "8080:8080"  # Port dédié staging
     volumes:
-      - ./nginx:/etc/nginx/conf.d:ro
+      - /home/django/recovr_software/production/nginx:/etc/nginx/conf.d:ro
       - static_production:/var/www/production/static:ro
       - static_staging:/var/www/staging/static:ro
       - media_production:/var/www/production/media:ro
@@ -18,7 +18,7 @@ services:
       - recovr_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/nginx-health"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/nginx-health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
