@@ -1,8 +1,4 @@
 stages:
-#  - lint
-#  - test
-#  - changelog
-#  - sync
   - deploy-staging
   - deploy-production
   - deploy-proxy
