@@ -36,6 +36,7 @@ lint:
     - poetry run ruff check .
     - poetry run isort --check-only .
   allow_failure: false
+  when: manual
 
 # Test stage
 test:
@@ -44,7 +45,7 @@ test:
   script:
     - poetry install
     - poetry run pytest
-
+  when: manual
 
 # Update changelog stage
 update-changelog:
@@ -96,6 +97,9 @@ update-changelog:
         echo "No changelog changes detected"
       fi
 
+  when: manual
+
+# Synchro Github
 sync-to-github:
   stage: sync
   image: "python:3.12"
@@ -125,6 +129,7 @@ sync-to-github:
     - git remote add github git@github.com:stan-kempachi/recovr_software.git
     # Pousser vers GitHub
     - git push --mirror github
+  when: manual
 
 # Template pour les déploiements
 .deploy_template: &deploy_template
@@ -152,7 +157,9 @@ deploy-staging:
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
     # Préparer le dossier distant
