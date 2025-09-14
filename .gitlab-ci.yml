@@ -147,11 +147,14 @@ sync-to-github:
 # Déploiement staging
 deploy-staging:
   stage: deploy-staging
-  script:
+  before_script:
+    - apt-get update && apt-get install -y openssh-client rsync
+    - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
-
+  script:
     # Préparer le dossier distant
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
