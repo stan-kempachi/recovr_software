@@ -147,10 +147,14 @@ sync-to-github:
 # Déploiement staging
 deploy-staging:
   stage: deploy-staging
-  script:
+  before_script:
+    - apk add --no-cache openssh-client rsync
+    - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
+  script:
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
     - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
@@ -173,10 +177,14 @@ deploy-staging:
 # Déploiement production
 deploy-production:
   stage: deploy-production
-  script:
+  before_script:
+    - apk add --no-cache openssh-client rsync
+    - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - ssh-keyscan -H $DO_PROD_IP >> ~/.ssh/known_hosts
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
+  script:
     - ssh $DO_USER@$DO_PROD_IP "mkdir -p /home/django/recovr_software/production"
     - ssh $DO_USER@$DO_PROD_IP "mkdir -p /home/django/recovr_software/logs/nginx"
     - scp docker_compose.production.yml $DO_USER@$DO_PROD_IP:/home/django/recovr_software/production/
