@@ -17,11 +17,6 @@ services:
     networks:
       - recovr_network
     restart: unless-stopped
-    depends_on:
-      web_production:
-        condition: service_healthy
-      web_staging:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/nginx-health"]
       interval: 30s
