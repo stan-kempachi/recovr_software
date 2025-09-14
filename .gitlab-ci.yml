@@ -229,7 +229,7 @@ deploy-production:
     # Déployer avec docker compose
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/production &&
-      docker-compose --env-file .env.production -f docker_compose.production.yml build web_staging &&
+      docker-compose --env-file .env.production -f docker_compose.production.yml build web_production &&
       docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py migrate &&
       docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py collectstatic --noinput &&
       docker-compose --env-file .env.production -f docker_compose.production.yml up -d web_production nginx"
