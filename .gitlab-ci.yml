@@ -194,7 +194,6 @@ deploy-staging:
   only:
     - master
 
-
 # Déploiement production
 deploy-production:
   stage: deploy-production
@@ -238,6 +237,7 @@ deploy-production:
     - ssh $DO_USER@$DO_IP "docker image prune -f"
   only:
     - master
+  when: manual
 
 # Job optionnel pour déployer le proxy nginx (à lancer après staging et production)
 deploy-proxy:
