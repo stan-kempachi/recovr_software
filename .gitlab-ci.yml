@@ -36,7 +36,6 @@ lint:
     - poetry run ruff check .
     - poetry run isort --check-only .
   allow_failure: false
-  when: manual
 
 # Test stage
 test:
@@ -45,7 +44,6 @@ test:
   script:
     - poetry install
     - poetry run pytest
-  when: manual
 
 # Update changelog stage
 update-changelog:
@@ -97,7 +95,6 @@ update-changelog:
         echo "No changelog changes detected"
       fi
 
-  when: manual
 
 # Synchro Github
 sync-to-github:
@@ -129,7 +126,6 @@ sync-to-github:
     - git remote add github git@github.com:stan-kempachi/recovr_software.git
     # Pousser vers GitHub
     - git push --mirror github
-  when: manual
 
 # Template pour les déploiements
 .deploy_template: &deploy_template
@@ -188,12 +184,15 @@ deploy-staging:
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
 
     # Déployer avec docker compose
-    - rsync -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" -avz --delete \        --exclude='.git' --exclude='*.pyc' --exclude='__pycache__' ./ \
-        $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - ssh $DO_USER@$DO_IP << 'EOF'
-      cd /home/django/recovr_software/staging
-      docker compose -f docker_compose.staging.yml up -d --build
-      EOF
+    - ssh $DO_USER@$DO_IP "
+      cd /home/django/recovr_software/staging &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging nginx"
+  only:
+    - master
+
 
 # Déploiement production
 deploy-production:
@@ -228,16 +227,16 @@ deploy-production:
     - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env
 
     # Déployer avec docker compose
-    - rsync -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" -avz --delete \        --exclude='.git' --exclude='*.pyc' --exclude='__pycache__' ./ \
-        $DO_USER@$DO_IP:/home/django/recovr_software/production/
-    - ssh $DO_USER@$DO_IP << 'EOF'
-      cd /home/django/recovr_software/production
-      docker compose -f docker_compose.production.yml up -d --build
-      EOF
-
+    - ssh $DO_USER@$DO_IP "
+      cd /home/django/recovr_software/production &&
+      docker-compose --env-file .env.production -f docker_compose.production.yml build web_staging &&
+      docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py migrate &&
+      docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py collectstatic --noinput &&
+      docker-compose --env-file .env.production -f docker_compose.production.yml up -d web_production nginx"
     # Nettoyage des images Docker inutilisées pour libérer de l'espace
     - ssh $DO_USER@$DO_IP "docker image prune -f"
-
+  only:
+    - master
 
 # Job optionnel pour déployer le proxy nginx (à lancer après staging et production)
 deploy-proxy:
