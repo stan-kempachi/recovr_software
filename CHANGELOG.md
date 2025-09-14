@@ -2,6 +2,93 @@
 
 <!-- version list -->
 
+## v1.4.0 (2025-09-14)
+
+### Continuous Integration
+
+- Add $SSH_PRIVATE_KEY to deployement jobs
+  ([`bbaa3ea`](https://gitlab.com/django1361117/recovr_software/-/commit/bbaa3ea03e27b5fea8b5f8290d001c8ea0fc8362))
+
+- Add - rsync -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" -avz --delete \ to deployement
+  jobs
+  ([`022f7c6`](https://gitlab.com/django1361117/recovr_software/-/commit/022f7c6db9b941cdfe329769cb1a61f5df8e137e))
+
+- Add /.ssh/ before ssh-keyscan
+  ([`aa960b5`](https://gitlab.com/django1361117/recovr_software/-/commit/aa960b566d3ef9985c1a4af7763a12d52de1f1c1))
+
+- Add /.ssh/ before ssh-keyscan in deploy-staging job
+  ([`41365f2`](https://gitlab.com/django1361117/recovr_software/-/commit/41365f2d82c810fdddd1c0ff04eca49312f6b2fe))
+
+- Add /.ssh/ before ssh-keyscan in deploy-staging job
+  ([`fe93cec`](https://gitlab.com/django1361117/recovr_software/-/commit/fe93cec87e0e18987c62595554646edcd1ee1b98))
+
+- Add docker_compose.production.yml docker_compose.proxy.yml docker_compose.staging.yml update
+  gitlab-ci.yml and add health url
+  ([`0ec23f2`](https://gitlab.com/django1361117/recovr_software/-/commit/0ec23f243d52de7317e3f4e717bdac74d8dbf913))
+
+- CI/CD pipeline and environment configurations
+  ([`c7b083a`](https://gitlab.com/django1361117/recovr_software/-/commit/c7b083affa87fe0797987d7cc548a7bcd3b0c3f8))
+
+- Config rsync
+  ([`c7c91fe`](https://gitlab.com/django1361117/recovr_software/-/commit/c7c91fe17d20cd61ac93caac16416f0eeb23edf1))
+
+- Config user permissions
+  ([`4bfce48`](https://gitlab.com/django1361117/recovr_software/-/commit/4bfce48e98d132ff55c0fb8599299710a1297ecd))
+
+- Enhance Nginx configuration for production and staging
+  ([`0c1334b`](https://gitlab.com/django1361117/recovr_software/-/commit/0c1334b913d408baa0a55f024f10f1c0b266df84))
+
+- Reformat .gitlab-ci.yml and health endpoint
+  ([`309ec2b`](https://gitlab.com/django1361117/recovr_software/-/commit/309ec2bf1c1d11095f6e808090f0bfb0e15a37bd))
+
+- Reformat .gitlab-ci.yml sync stage
+  ([`a9f94ad`](https://gitlab.com/django1361117/recovr_software/-/commit/a9f94ad8147e0295afddcf3c41bc0ecf92471c6e))
+
+- Reformat .gitlab-ci.yml sync stage
+  ([`1e55928`](https://gitlab.com/django1361117/recovr_software/-/commit/1e5592850dbec7079b42911837678e721d802399))
+
+- Reformat env file create method
+  ([`a80ad7e`](https://gitlab.com/django1361117/recovr_software/-/commit/a80ad7ef2eb6d5d20c1cef4e1e6ee5b29870829e))
+
+- Remove --no-dev option
+  ([`6362b01`](https://gitlab.com/django1361117/recovr_software/-/commit/6362b019d9dd975924e48b07e63299c44e08b752))
+
+- Remove apk add replace by apt-get update && apt-get install -y
+  ([`f516de5`](https://gitlab.com/django1361117/recovr_software/-/commit/f516de5bcc2e3e58017b5eea29ce313a65ba2879))
+
+- Remove depends_on section
+  ([`d5657c3`](https://gitlab.com/django1361117/recovr_software/-/commit/d5657c338287796069029b9af6546871cc61675f))
+
+- Remove nginx deployment in staging and production stage
+  ([`ca46d4d`](https://gitlab.com/django1361117/recovr_software/-/commit/ca46d4db92a9b9b86b0638ec173730ea7c08045b))
+
+- Remove nginx deployment in staging and production stage
+  ([`30ba4e1`](https://gitlab.com/django1361117/recovr_software/-/commit/30ba4e193bba57d3c14e1a866d593dc74e2e2748))
+
+- Remove nginx deployment in staging and production stage
+  ([`e0da5d1`](https://gitlab.com/django1361117/recovr_software/-/commit/e0da5d1f0c1fc00151a06dfbb7dba4bf41ee61f7))
+
+- Remove rsync add docker_compose in deployement method
+  ([`b9385e9`](https://gitlab.com/django1361117/recovr_software/-/commit/b9385e94a6e059350673d98eaee9f4a245fe4f33))
+
+- Replace $DO_PROD_IP by $DO_IP
+  ([`b67779c`](https://gitlab.com/django1361117/recovr_software/-/commit/b67779c246d8a71a8cab9280449481ad0543133e))
+
+- Update Nginx config and Docker Compose for improved deployment
+  ([`38ca7a3`](https://gitlab.com/django1361117/recovr_software/-/commit/38ca7a31a8e440928fdee3e47991dbbc52dac3b5))
+
+- Update Nginx config and Docker setup for staging/production
+  ([`0a28bcf`](https://gitlab.com/django1361117/recovr_software/-/commit/0a28bcfe69e96efd091ceb04303bab10c9b574f6))
+
+### Features
+
+- Successfull production deployement
+  ([`45b5e59`](https://gitlab.com/django1361117/recovr_software/-/commit/45b5e59635bb5e38812b73149433d49f41a421e0))
+
+- **ci**: Succes deployment jobs deploy-staging deploy-production
+  ([`8666e1a`](https://gitlab.com/django1361117/recovr_software/-/commit/8666e1ae0b437a1525d84d7da87507b84ff09c0e))
+
+
 ## v1.3.0 (2025-09-12)
 
 ### Bug Fixes
