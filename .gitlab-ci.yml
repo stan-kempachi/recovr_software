@@ -188,8 +188,7 @@ deploy-staging:
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
 
     # Déployer avec docker compose
-    - rsync -e "ssh -o StrictHostKeyChecking=no" -avz --delete \
-        --exclude='.git' --exclude='*.pyc' --exclude='__pycache__' ./ \
+    - rsync -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" -avz --delete \        --exclude='.git' --exclude='*.pyc' --exclude='__pycache__' ./ \
         $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - ssh $DO_USER@$DO_IP << 'EOF'
       cd /home/django/recovr_software/staging
@@ -229,8 +228,7 @@ deploy-production:
     - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env
 
     # Déployer avec docker compose
-    - rsync -e "ssh -o StrictHostKeyChecking=no" -avz --delete \
-        --exclude='.git' --exclude='*.pyc' --exclude='__pycache__' ./ \
+    - rsync -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" -avz --delete \        --exclude='.git' --exclude='*.pyc' --exclude='__pycache__' ./ \
         $DO_USER@$DO_IP:/home/django/recovr_software/production/
     - ssh $DO_USER@$DO_IP << 'EOF'
       cd /home/django/recovr_software/production
