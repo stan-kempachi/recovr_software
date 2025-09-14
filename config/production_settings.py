@@ -4,7 +4,13 @@ import os
 DEBUG = False
 
 # Permettre l'accès depuis le domaine de production
-ALLOWED_HOSTS = ["recovr.com", "www.recovr.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "157.230.21.181",
+    "recovr.com",
+    "www.recovr.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # Base de données PostgreSQL pour l'environnement de production
 DATABASES = {
@@ -42,3 +48,4 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
+SECURE_REDIRECT_EXEMPT = [r"^health/$"]
