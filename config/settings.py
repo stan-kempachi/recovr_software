@@ -130,7 +130,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# Internationalization
 LANGUAGE_CODE = "fr-fr"
 TIME_ZONE = "Europe/Paris"
 USE_I18N = True
@@ -149,3 +148,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Spécifie le modèle utilisateur personnalisé
 AUTH_USER_MODEL = "accounts.User"
+
+
+# Configuration des emails pour le developpement
+# EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+# EMAIL_HOST = os.getenv("EMAIL_HOST")
+# EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+# EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+# DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
