@@ -19,10 +19,12 @@ variables:
       - .cache/pypoetry
       - .venv/
 
-# Template pour les jobs Python
+# Template pour les jobs Python avec runner auto-hébergé
 .python_job: &python_job
   image: "python:3.12-slim"
   <<: *poetry_cache
+  tags:
+    - self-hosted
   before_script:
     - pip install --upgrade pip poetry
     - poetry config virtualenvs.in-project true
@@ -48,6 +50,8 @@ test:
 
 # Update changelog stage
 update-changelog:
+  tags:
+    - self-hosted
   stage: changelog
   image: "python:3.12-slim"
   only:
@@ -99,6 +103,8 @@ update-changelog:
 
 # Synchro Github
 sync-to-github:
+  tags:
+    - self-hosted
   stage: sync
   image: "python:3.12"
   only:
@@ -129,7 +135,9 @@ sync-to-github:
     - git push --mirror github
 
 # Template pour les déploiements
-.deploy_template: &deploy_template
+.deploy_job: &deploy_job
+  tags:
+    - self-hosted
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
@@ -148,6 +156,7 @@ sync-to-github:
 
 # Déploiement staging
 deploy-staging:
+  <<: *deploy_job
   stage: deploy-staging
   before_script:
     - apt-get update && apt-get install -y openssh-client rsync
@@ -196,6 +205,7 @@ deploy-staging:
 
 # Déploiement production
 deploy-production:
+  <<: *deploy_job
   stage: deploy-production
   before_script:
     - apt-get update && apt-get install -y openssh-client rsync
@@ -241,7 +251,7 @@ deploy-production:
 
 # Job optionnel pour déployer le proxy nginx (à lancer après staging et production)
 deploy-proxy:
-  <<: *deploy_template
+  <<: *deploy_job
   stage: deploy-proxy
   before_script:
     - apt-get update && apt-get install -y openssh-client rsync
