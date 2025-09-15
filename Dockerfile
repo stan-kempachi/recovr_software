@@ -25,7 +25,6 @@ RUN pip install --upgrade pip \
 COPY pyproject.toml /app/
 
 # Configuration de Poetry pour ne pas créer d'environnement virtuel
-# (puisque le conteneur est déjà isolé)
 RUN poetry config virtualenvs.create false
 
 # Régénérer le fichier lock si nécessaire
