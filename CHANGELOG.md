@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.5.0 (2025-09-15)
+
+### Bug Fixes
+
+- Dockers health-check ok
+  ([`aee7e5f`](https://gitlab.com/django1361117/recovr_software/-/commit/aee7e5f1a5d860b0a5078c590426c8cf71a2cedd))
+
+### Continuous Integration
+
+- Add self-hosted GitLab runner
+  ([`c2e777d`](https://gitlab.com/django1361117/recovr_software/-/commit/c2e777d83253807a304ff1059bb076e6322f26aa))
+
+- Update pyproject.toml to version 1.4.0 [skip ci]
+  ([`0265692`](https://gitlab.com/django1361117/recovr_software/-/commit/0265692a5374f3df19dbe9fbcf7a64697837902e))
+
+### Features
+
+- **ci**: Dockers success config health-check ok
+  ([`048d108`](https://gitlab.com/django1361117/recovr_software/-/commit/048d1085d331d338aae47e362e2c6cf636b33900))
+
+- **ci**: Succes run self-hosted GitLab runners + format files
+  ([`cec3279`](https://gitlab.com/django1361117/recovr_software/-/commit/cec327955d71ebfe113ff8f91779fbba405bf436))
+
+
 ## v1.4.0 (2025-09-14)
 
 ### Continuous Integration
