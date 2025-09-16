@@ -4,13 +4,7 @@ import os
 DEBUG = False
 
 # Permettre l'accès depuis le domaine de production
-ALLOWED_HOSTS = [
-    "157.230.21.181",
-    "recovr.com",
-    "www.recovr.com",
-    "localhost",
-    "127.0.0.1",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
 # Base de données PostgreSQL pour l'environnement de production
 DATABASES = {
@@ -24,21 +18,12 @@ DATABASES = {
     }
 }
 
-# Configuration des emails pour la production
-# EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
-# EMAIL_HOST = os.getenv("EMAIL_HOST")
-# EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-# EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-# DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
-
 # Configuration des fichiers statiques
 STATIC_ROOT = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "staticfiles"
 )
 
-# Paramètres de sécurité pour la production
+# Paramètres de sécurité pour la production (HTTPS obligatoire)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
@@ -48,4 +33,15 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
-SECURE_REDIRECT_EXEMPT = [r"^health/$"]
+
+# Exemptions pour les healthchecks
+SECURE_REDIRECT_EXEMPT = [r"^health/$", r"^nginx-health/$"]
+
+# Configuration des emails pour la production
+# EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+# EMAIL_HOST = os.getenv("EMAIL_HOST")
+# EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+# EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+# DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")

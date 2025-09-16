@@ -181,14 +181,14 @@ deploy-staging:
       echo "# Staging environment" > .env.staging
       echo "DEBUG=False" >> .env.staging
       echo "SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
-      echo "ALLOWED_HOSTS=$DO_IP,recovr-staging.example.com" >> .env.staging
+      echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.staging
       echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
       echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
       echo "DB_USER=$STAGING_DB_USER" >> .env.staging
       echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
       echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
       echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
-      echo "ENVIRONMENT=staging" >> .env.staging
+      echo "ENVIRONMENT=staging" >> .env.staging    
 
     # Envoyer le .env sur le serveur
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
@@ -224,7 +224,7 @@ deploy-production:
       echo "# Production environment" > .env.production
       echo "DEBUG=False" >> .env.production
       echo "PRODUCTION_SECRET_KEY=$PRODUCTION_SECRET_KEY" >> .env.production
-      echo "ALLOWED_HOSTS=$DO_IP,recovr.com,www.recovr.com" >> .env.production
+      echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.production
       echo "DB_ENGINE=django.db.backends.postgresql" >> .env.production
       echo "PRODUCTION_DB_NAME=$PRODUCTION_DB_NAME" >> .env.production
       echo "PRODUCTION_DB_USER=$PRODUCTION_DB_USER" >> .env.production
