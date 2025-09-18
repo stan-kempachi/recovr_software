@@ -167,15 +167,27 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 # Configuration allauth
-# ✅ Nouvelles configurations
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-
-# Autres configurations allauth (gardez celles-ci)
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_UNIQUE_EMAIL = True
 
-FORCE_SCRIPT_NAME = "/staging"
+# Configuration Google OAuth2
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "APP": {
+            "client_id": os.getenv("GOOGLE_OAUTH2_CLIENT_ID"),
+            "secret": os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET"),
+        },
+    }
+}
 
 
 # Configuration des emails pour le developpement
