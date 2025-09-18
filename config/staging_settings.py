@@ -51,4 +51,4 @@ else:
 SECURE_REDIRECT_EXEMPT = [r"^health/$", r"^nginx-health/$"]
 
 # Configuration du sous-chemin pour staging via HTTPS
-FORCE_SCRIPT_NAME = "/staging" if os.getenv("HTTP_X_FORWARDED_PROTO") == "https" else ""
+FORCE_SCRIPT_NAME = "/staging"

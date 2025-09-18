@@ -189,7 +189,8 @@ deploy-staging:
       echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
       echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
       echo "ENVIRONMENT=staging" >> .env.staging    
-
+      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging
+      echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.staging
     # Envoyer le .env sur le serveur
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
 
@@ -232,7 +233,8 @@ deploy-production:
       echo "PRODUCTION_DB_HOST=$PRODUCTION_DB_HOST" >> .env.production
       echo "PRODUCTION_DB_PORT=${PRODUCTION_DB_PORT:-5432}" >> .env.production
       echo "ENVIRONMENT=production" >> .env.production
-
+      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.production
+      echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.production
     # Envoyer le .env sur le serveur
     - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env
 
