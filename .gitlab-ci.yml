@@ -197,18 +197,24 @@ deploy-staging:
       echo "ENVIRONMENT=staging" >> .env.staging    
       echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging
       echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.staging
+
     # Envoyer le .env sur le serveur
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
 
-    # Ajouter un échoindicateur pour déboguer
+    # Ajouter un écho indicateur pour déboguer
     - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && echo 'Contenu du fichier .env:' && cat .env"
 
-    # Déployer avec docker compose en transmettant explicitement les variables d'environnement
+    # Créer les volumes Docker si nécessaires
+    - ssh $DO_USER@$DO_IP "docker volume create --name=static_staging || true"
+    - ssh $DO_USER@$DO_IP "docker volume create --name=media_staging || true"
+    - ssh $DO_USER@$DO_IP "docker network create recovr_network || true"
+
+    # Déployer avec docker compose en utilisant le fichier .env (au lieu de -e flags)
     - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && 
       docker-compose -f docker_compose.staging.yml build web_staging && 
-      docker-compose -f docker_compose.staging.yml run -e DB_HOST=$STAGING_DB_HOST -e DB_PORT=$STAGING_DB_PORT -e DB_NAME=$STAGING_DB_NAME -e DB_USER=$STAGING_DB_USER -e DB_PASSWORD=$STAGING_DB_PASSWORD --rm web_staging python manage.py migrate && 
-      docker-compose -f docker_compose.staging.yml run -e DB_HOST=$STAGING_DB_HOST -e DB_PORT=$STAGING_DB_PORT -e DB_NAME=$STAGING_DB_NAME -e DB_USER=$STAGING_DB_USER -e DB_PASSWORD=$STAGING_DB_PASSWORD --rm web_staging python manage.py collectstatic --noinput && 
-      docker-compose -f docker_compose.staging.yml up -d -e DB_HOST=$STAGING_DB_HOST -e DB_PORT=$STAGING_DB_PORT -e DB_NAME=$STAGING_DB_NAME -e DB_USER=$STAGING_DB_USER -e DB_PASSWORD=$STAGING_DB_PASSWORD web_staging"
+      docker-compose -f docker_compose.staging.yml run --rm web_staging python manage.py migrate && 
+      docker-compose -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput && 
+      docker-compose -f docker_compose.staging.yml up -d web_staging"
 
   only:
     - master
