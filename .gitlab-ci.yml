@@ -1,9 +1,9 @@
 stages:
-  - deploy-staging
   - lint
   - test
   - changelog
   - sync
+  - deploy-staging
   - deploy-production
   - deploy-proxy
 
@@ -39,7 +39,6 @@ lint:
     - poetry run ruff check .
     - poetry run isort --check-only .
   allow_failure: false
-  when: manual
 
 # Test stage
 test:
@@ -48,7 +47,6 @@ test:
   script:
     - poetry install
     - poetry run pytest
-  when: manual
 
 # Update changelog stage
 update-changelog:
@@ -103,8 +101,6 @@ update-changelog:
       fi
 
 
-  when: manual
-
 # Synchro Github
 sync-to-github:
   tags:
@@ -137,7 +133,6 @@ sync-to-github:
     - git remote add github git@github.com:stan-kempachi/recovr_software.git
     # Pousser vers GitHub
     - git push --mirror github
-  when: manual
 
 # Template pour les déploiements
 .deploy_job: &deploy_job
@@ -194,10 +189,9 @@ deploy-staging:
       echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
       echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
       echo "ENVIRONMENT=staging" >> .env.staging    
-      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging
-      echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.staging
+
     # Envoyer le .env sur le serveur
-    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
+    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
 
     # Déployer avec docker compose
     - ssh $DO_USER@$DO_IP "
@@ -238,8 +232,6 @@ deploy-production:
       echo "PRODUCTION_DB_HOST=$PRODUCTION_DB_HOST" >> .env.production
       echo "PRODUCTION_DB_PORT=${PRODUCTION_DB_PORT:-5432}" >> .env.production
       echo "ENVIRONMENT=production" >> .env.production
-      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.production
-      echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.production
 
     # Envoyer le .env sur le serveur
     - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env.production
