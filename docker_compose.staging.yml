@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   web_staging:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     container_name: recovr_web_staging
     build:
       context: .
