@@ -16,13 +16,14 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("STAGING_DB_NAME"),
-        "USER": os.getenv("STAGING_DB_USER"),
-        "PASSWORD": os.getenv("STAGING_DB_PASSWORD"),
-        "HOST": os.getenv("STAGING_DB_HOST"),
-        "PORT": os.getenv("STAGING_DB_PORT"),
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
+
 
 # Configuration des emails (peut utiliser un backend de développement en staging)
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
