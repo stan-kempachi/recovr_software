@@ -201,17 +201,13 @@ deploy-staging:
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
 
     # Déployer avec docker compose
-    - ssh $DO_USER@$DO_IP "
-      cd /home/django/recovr_software/staging &&
-      echo 'Valeurs des variables:' &&
-      echo DB_HOST=$DB_HOST &&
-      echo DB_PORT=$DB_PORT &&
-      echo 'Contenu du fichier .env:' &&
-      cat .env &&
-      docker-compose --env-file .env -f docker_compose.staging.yml build web_staging &&
-      docker-compose --env-file .env -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
-      docker-compose --env-file .env -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
-      docker-compose --env-file .env -f docker_compose.staging.yml up -d web_staging"
+    - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && 
+      export $(cat .env | xargs) &&
+      docker-compose -f docker_compose.staging.yml build web_staging && 
+      docker-compose -f docker_compose.staging.yml run --rm web_staging python manage.py migrate && 
+      docker-compose -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput && 
+      docker-compose -f docker_compose.staging.yml up -d web_staging"
+
   only:
     - master
 
