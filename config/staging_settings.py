@@ -11,6 +11,9 @@ DEBUG = False
 # Permettre l'accès depuis différentes sources
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
+db_host = os.getenv("DB_HOST", "")
+if not db_host or db_host.lower() in ["localhost", "127.0.0.1"]:
+    db_host = "host.docker.internal"
 
 # Base de données PostgreSQL pour l'environnement staging
 DATABASES = {
@@ -19,7 +22,7 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME"),
         "USER": os.getenv("DB_USER"),
         "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
+        "HOST": db_host,
         "PORT": os.getenv("DB_PORT"),
     }
 }
