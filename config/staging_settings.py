@@ -52,3 +52,36 @@ SECURE_REDIRECT_EXEMPT = [r"^health/$", r"^nginx-health/$"]
 
 # Configuration du sous-chemin pour staging via HTTPS
 FORCE_SCRIPT_NAME = "/staging"
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",  # login normal
+    "allauth.account.auth_backends.AuthenticationBackend",  # login social
+]
+
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+# Configuration allauth
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_UNIQUE_EMAIL = True
+
+# Configuration Google OAuth2
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "APP": {
+            "client_id": os.getenv("GOOGLE_OAUTH2_CLIENT_ID"),
+            "secret": os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET"),
+        },
+    }
+}
