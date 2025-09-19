@@ -200,13 +200,15 @@ deploy-staging:
     # Envoyer le .env sur le serveur
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
 
-    # Déployer avec docker compose
+    # Ajouter un échoindicateur pour déboguer
+    - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && echo 'Contenu du fichier .env:' && cat .env"
+
+    # Déployer avec docker compose en transmettant explicitement les variables d'environnement
     - ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && 
-      export $(cat .env | xargs) &&
       docker-compose -f docker_compose.staging.yml build web_staging && 
-      docker-compose -f docker_compose.staging.yml run --rm web_staging python manage.py migrate && 
-      docker-compose -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput && 
-      docker-compose -f docker_compose.staging.yml up -d web_staging"
+      docker-compose -f docker_compose.staging.yml run -e DB_HOST=$STAGING_DB_HOST -e DB_PORT=$STAGING_DB_PORT -e DB_NAME=$STAGING_DB_NAME -e DB_USER=$STAGING_DB_USER -e DB_PASSWORD=$STAGING_DB_PASSWORD --rm web_staging python manage.py migrate && 
+      docker-compose -f docker_compose.staging.yml run -e DB_HOST=$STAGING_DB_HOST -e DB_PORT=$STAGING_DB_PORT -e DB_NAME=$STAGING_DB_NAME -e DB_USER=$STAGING_DB_USER -e DB_PASSWORD=$STAGING_DB_PASSWORD --rm web_staging python manage.py collectstatic --noinput && 
+      docker-compose -f docker_compose.staging.yml up -d -e DB_HOST=$STAGING_DB_HOST -e DB_PORT=$STAGING_DB_PORT -e DB_NAME=$STAGING_DB_NAME -e DB_USER=$STAGING_DB_USER -e DB_PASSWORD=$STAGING_DB_PASSWORD web_staging"
 
   only:
     - master
