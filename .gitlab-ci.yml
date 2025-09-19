@@ -174,7 +174,6 @@ deploy-staging:
 
     # Copier les docker-compose
     - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
 
     # Générer le .env localement
     - |
@@ -218,7 +217,7 @@ deploy-production:
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
     - scp docker_compose.production.yml $DO_USER@$DO_IP:/home/django/recovr_software/production/
-    - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
+
    # Préparer le .env pour production
     - |
       echo "# Production environment" > .env.production
@@ -243,6 +242,7 @@ deploy-production:
       docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py migrate &&
       docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py collectstatic --noinput &&
       docker-compose --env-file .env.production -f docker_compose.production.yml up -d web_production"
+
     # Nettoyage des images Docker inutilisées pour libérer de l'espace
     - ssh $DO_USER@$DO_IP "docker image prune -f"
   only:
@@ -264,6 +264,10 @@ deploy-proxy:
     # S'assurer que les fichiers nginx sont présents
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/nginx"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
+
+    # Copier le docker-compose
+    - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
+
     # Démarrer nginx
     - |
       ssh $DO_USER@$DO_IP "
