@@ -11,7 +11,7 @@ services:
       args:
         - ENVIRONMENT=production
     env_file:
-      - .env
+      - .env.production
     command: >
       bash -c "python manage.py migrate --noinput && 
                python manage.py collectstatic --noinput && 
