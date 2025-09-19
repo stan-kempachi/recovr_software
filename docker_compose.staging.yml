@@ -9,7 +9,7 @@ services:
       args:
         - ENVIRONMENT=staging
     env_file:
-      - .env.staging
+      - .env
     command: >
       bash -c "python manage.py migrate --noinput && 
                python manage.py collectstatic --noinput && 
@@ -18,15 +18,7 @@ services:
       - static_staging:/app/staticfiles
       - media_staging:/app/media
     environment:
-      ENVIRONMENT: staging
-      SECRET_KEY: ${STAGING_SECRET_KEY}
-      DEBUG: "True"  # Plus de debug en staging
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
-      DB_NAME: ${STAGING_DB_NAME}
-      DB_USER: ${STAGING_DB_USER}
-      DB_PASSWORD: ${STAGING_DB_PASSWORD}
-      DB_HOST: ${STAGING_DB_HOST}
-      DB_PORT: ${STAGING_DB_PORT:-5432}
+      DJANGO_SETTINGS_MODULE: config.staging_settings
     ports:
       - "8001:8001"
     networks:
