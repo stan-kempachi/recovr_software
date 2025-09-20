@@ -178,28 +178,28 @@ deploy-staging:
 
     # Générer le .env localement
     - |
-      echo "# Staging environment" > .env.staging
-      echo "DEBUG=False" >> .env.staging
-      echo "SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
-      echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.staging
-      echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
-      echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
-      echo "DB_USER=$STAGING_DB_USER" >> .env.staging
-      echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-      echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
-      echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
-      echo "ENVIRONMENT=staging" >> .env.staging    
+      echo "# Staging environment" > .env
+      echo "DEBUG=False" >> .env
+      echo "SECRET_KEY=$STAGING_SECRET_KEY" >> .env
+      echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env
+      echo "DB_ENGINE=django.db.backends.postgresql" >> .env
+      echo "DB_NAME=$STAGING_DB_NAME" >> .env
+      echo "DB_USER=$STAGING_DB_USER" >> .env
+      echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env
+      echo "DB_HOST=$STAGING_DB_HOST" >> .env
+      echo "DB_PORT=$STAGING_DB_PORT" >> .env
+      echo "ENVIRONMENT=staging" >> .env    
 
     # Envoyer le .env sur le serveur
-    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
+    - scp .env $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
 
     # Déployer avec docker compose
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
+      docker-compose -f docker_compose.staging.yml build web_staging &&
+      docker-compose -f docker_compose.staging.yml run --rm web_staging python manage.py migrate --settings=config.staging_settings &&
+      docker-compose -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput --settings=config.staging_settings &&
+      docker-compose -f docker_compose.staging.yml up -d web_staging"
   only:
     - master
 
