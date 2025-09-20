@@ -154,11 +154,12 @@ variables:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh $DO_USER@$DO_IP "echo 'SSH connection test successful'"
 
+# Déploiement staging
 deploy-staging:
   <<: *deploy_job
   stage: deploy-staging
   before_script:
-    - apt-get update && apt-get install -y openssh-client rsync postgresql-client
+    - apt-get update && apt-get install -y openssh-client rsync
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
@@ -173,6 +174,7 @@ deploy-staging:
 
     # Copier les docker-compose
     - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
+    - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
 
     # Générer le .env localement
     - |
@@ -184,45 +186,20 @@ deploy-staging:
       echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
       echo "DB_USER=$STAGING_DB_USER" >> .env.staging
       echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-      echo "DB_HOST=127.0.0.1" >> .env.staging
-      echo "DB_PORT=5432" >> .env.staging
-      echo "ENVIRONMENT=staging" >> .env.staging
-
-    # Afficher le contenu du fichier .env (version sécurisée)
-    - echo "Contenu du fichier .env.staging (informations sensibles masquées) :"
-    - cat .env.staging | sed 's/PASSWORD=.*/PASSWORD=******/g' | sed 's/SECRET_KEY=.*/SECRET_KEY=******/g'
+      echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
+      echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
+      echo "ENVIRONMENT=staging" >> .env.staging    
 
     # Envoyer le .env sur le serveur
-    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
+    - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env
 
-    # Test de connexion direct à PostgreSQL
-    - ssh $DO_USER@$DO_IP "PGPASSWORD=$STAGING_DB_PASSWORD psql -h 127.0.0.1 -U $STAGING_DB_USER -d $STAGING_DB_NAME -c 'SELECT 1;' || echo 'Échec de la connexion à PostgreSQL'"
-
-    # Déployer avec docker compose avec des commandes modifiées
-    - |
-      ssh $DO_USER@$DO_IP "cd /home/django/recovr_software/staging && \
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging && \
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm \
-        -e DB_HOST=127.0.0.1 \
-        -e DB_PORT=5432 \
-        -e DB_NAME=$STAGING_DB_NAME \
-        -e DB_USER=$STAGING_DB_USER \
-        -e DB_PASSWORD=$STAGING_DB_PASSWORD \
-        web_staging python manage.py migrate && \
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm \
-        -e DB_HOST=127.0.0.1 \
-        -e DB_PORT=5432 \
-        -e DB_NAME=$STAGING_DB_NAME \
-        -e DB_USER=$STAGING_DB_USER \
-        -e DB_PASSWORD=$STAGING_DB_PASSWORD \
-        web_staging python manage.py collectstatic --noinput && \
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d \
-        -e DB_HOST=127.0.0.1 \
-        -e DB_PORT=5432 \
-        -e DB_NAME=$STAGING_DB_NAME \
-        -e DB_USER=$STAGING_DB_USER \
-        -e DB_PASSWORD=$STAGING_DB_PASSWORD \
-        web_staging"
+    # Déployer avec docker compose
+    - ssh $DO_USER@$DO_IP "
+      cd /home/django/recovr_software/staging &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
   only:
     - master
 
