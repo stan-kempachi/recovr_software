@@ -11,7 +11,7 @@ services:
       args:
         - ENVIRONMENT=staging
     env_file:
-      - .env.staging
+      - .env
     command: >
       bash -c "python manage.py migrate --noinput && 
                python manage.py collectstatic --noinput && 
