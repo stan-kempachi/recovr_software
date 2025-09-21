@@ -154,12 +154,12 @@ variables:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh $DO_USER@$DO_IP "echo 'SSH connection test successful'"
 
-# Déploiement staging avec diagnostic
+# Déploiement staging
 deploy-staging:
-  <<: *deploy_job
+  image: docker:24.0.5
   stage: deploy-staging
   before_script:
-    - apt-get update && apt-get install -y openssh-client rsync
+    - apk add --no-cache openssh-client rsync bash
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
@@ -168,21 +168,10 @@ deploy-staging:
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
-    # Diagnostic du serveur
+    # Diagnostic rapide
     - ssh $DO_USER@$DO_IP "
-      echo '=== Version PostgreSQL ===' &&
-      psql --version &&
-      echo '=== Configuration PostgreSQL ===' &&
-      echo 'Fichier postgresql.conf:' &&
-      grep 'listen_addresses' /etc/postgresql/*/main/postgresql.conf &&
-      echo 'Fichier pg_hba.conf:' &&
-      grep -E 'host.*all' /etc/postgresql/*/main/pg_hba.conf &&
-      echo '=== Statut du service PostgreSQL ===' &&
-      systemctl status postgresql | grep Active &&
-      echo '=== Ports en écoute ===' &&
-      sudo netstat -tulpn | grep postgres &&
-      echo '=== Contenu du fichier .env.staging ===' &&
-      cat /home/django/recovr_software/staging/.env.staging"
+      echo '=== Test connexion PostgreSQL ===' &&
+      PGPASSWORD='$STAGING_DB_PASSWORD' psql -h $STAGING_DB_HOST -U $STAGING_DB_USER -d $STAGING_DB_NAME -c 'SELECT 1'"
 
     # Préparer le dossier distant
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
@@ -192,60 +181,38 @@ deploy-staging:
     - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
 
-    # Générer le .env localement avec une configuration plus explicite
+    # Générer le .env localement avec l'adresse IP correcte
     - |
-      echo "# Staging environment" > .env.staging
-      echo "DEBUG=False" >> .env.staging
-      echo "SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
-      echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.staging
-      echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
-      echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
-      echo "DB_USER=$STAGING_DB_USER" >> .env.staging
-      echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-      
-      # Forcer une connexion TCP/IP et non un socket Unix
-      echo "DB_HOST=172.17.0.1" >> .env.staging
-      echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
-      
-      # Variables supplémentaires pour psycopg2
-      echo "PGHOST=172.17.0.1" >> .env.staging
-      echo "PGHOSTADDR=172.17.0.1" >> .env.staging
-      
-      echo "ENVIRONMENT=staging" >> .env.staging    
+      cat > .env.staging << EOF
+      # Staging environment
+      DEBUG=False
+      SECRET_KEY=$STAGING_SECRET_KEY
+      ALLOWED_HOSTS=$ALLOWED_HOSTS
+      DB_ENGINE=django.db.backends.postgresql
+      DB_NAME=$STAGING_DB_NAME
+      DB_USER=$STAGING_DB_USER
+      DB_PASSWORD=$STAGING_DB_PASSWORD
+      # Utiliser l'adresse IP correcte du serveur DB
+      DB_HOST=$STAGING_DB_HOST
+      DB_PORT=$STAGING_DB_PORT
+      ENVIRONMENT=staging
+      EOF
 
     # Envoyer le .env sur le serveur
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
 
-    # Configurer PostgreSQL pour accepter les connexions TCP/IP
-    - ssh $DO_USER@$DO_IP "
-      if ! grep -q \"listen_addresses = '*'\" /etc/postgresql/*/main/postgresql.conf; then
-        echo 'Configuration de PostgreSQL pour écouter sur toutes les interfaces...' &&
-        sudo sed -i \"s/#listen_addresses = 'localhost'/listen_addresses = '*'/\" /etc/postgresql/*/main/postgresql.conf &&
-        echo 'host    all             all             172.17.0.0/16           md5' | sudo tee -a /etc/postgresql/*/main/pg_hba.conf &&
-        sudo systemctl restart postgresql
-      fi"
-
-    # Créer un fichier .env explicite pour docker-compose
-    - |
-      ssh $DO_USER@$DO_IP "cat > /home/django/recovr_software/staging/.env << 'EOF'
-      POSTGRES_HOST=172.17.0.1
-      POSTGRES_PORT=5432
-      POSTGRES_DB=$STAGING_DB_NAME
-      POSTGRES_USER=$STAGING_DB_USER
-      POSTGRES_PASSWORD=$STAGING_DB_PASSWORD
-      EOF"
-
-    # Déployer avec docker compose en utilisant l'option network=host
+    # Déployer avec docker compose (utilisant le .env.staging explicitement)
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
       docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm --network=host web_staging python manage.py migrate &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm --network=host web_staging python manage.py collectstatic --noinput &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
       docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
 
     # Vérifier les logs du conteneur
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
+      sleep 3 &&
       docker-compose -f docker_compose.staging.yml logs web_staging"
   only:
     - master
