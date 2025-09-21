@@ -154,7 +154,7 @@ variables:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh $DO_USER@$DO_IP "echo 'SSH connection test successful'"
 
-# Déploiement staging
+# Déploiement staging avec diagnostic
 deploy-staging:
   <<: *deploy_job
   stage: deploy-staging
@@ -168,6 +168,22 @@ deploy-staging:
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
+    # Diagnostic du serveur
+    - ssh $DO_USER@$DO_IP "
+      echo '=== Version PostgreSQL ===' &&
+      psql --version &&
+      echo '=== Configuration PostgreSQL ===' &&
+      echo 'Fichier postgresql.conf:' &&
+      grep 'listen_addresses' /etc/postgresql/*/main/postgresql.conf &&
+      echo 'Fichier pg_hba.conf:' &&
+      grep -E 'host.*all' /etc/postgresql/*/main/pg_hba.conf &&
+      echo '=== Statut du service PostgreSQL ===' &&
+      systemctl status postgresql | grep Active &&
+      echo '=== Ports en écoute ===' &&
+      sudo netstat -tulpn | grep postgres &&
+      echo '=== Contenu du fichier .env.staging ===' &&
+      cat /home/django/recovr_software/staging/.env.staging"
+
     # Préparer le dossier distant
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
@@ -176,7 +192,7 @@ deploy-staging:
     - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
 
-    # Générer le .env localement
+    # Générer le .env localement avec une configuration plus explicite
     - |
       echo "# Staging environment" > .env.staging
       echo "DEBUG=False" >> .env.staging
@@ -186,20 +202,51 @@ deploy-staging:
       echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
       echo "DB_USER=$STAGING_DB_USER" >> .env.staging
       echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-      echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
+      
+      # Forcer une connexion TCP/IP et non un socket Unix
+      echo "DB_HOST=172.17.0.1" >> .env.staging
       echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
+      
+      # Variables supplémentaires pour psycopg2
+      echo "PGHOST=172.17.0.1" >> .env.staging
+      echo "PGHOSTADDR=172.17.0.1" >> .env.staging
+      
       echo "ENVIRONMENT=staging" >> .env.staging    
 
     # Envoyer le .env sur le serveur
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
 
-    # Déployer avec docker compose
+    # Configurer PostgreSQL pour accepter les connexions TCP/IP
+    - ssh $DO_USER@$DO_IP "
+      if ! grep -q \"listen_addresses = '*'\" /etc/postgresql/*/main/postgresql.conf; then
+        echo 'Configuration de PostgreSQL pour écouter sur toutes les interfaces...' &&
+        sudo sed -i \"s/#listen_addresses = 'localhost'/listen_addresses = '*'/\" /etc/postgresql/*/main/postgresql.conf &&
+        echo 'host    all             all             172.17.0.0/16           md5' | sudo tee -a /etc/postgresql/*/main/pg_hba.conf &&
+        sudo systemctl restart postgresql
+      fi"
+
+    # Créer un fichier .env explicite pour docker-compose
+    - |
+      ssh $DO_USER@$DO_IP "cat > /home/django/recovr_software/staging/.env << 'EOF'
+      POSTGRES_HOST=172.17.0.1
+      POSTGRES_PORT=5432
+      POSTGRES_DB=$STAGING_DB_NAME
+      POSTGRES_USER=$STAGING_DB_USER
+      POSTGRES_PASSWORD=$STAGING_DB_PASSWORD
+      EOF"
+
+    # Déployer avec docker compose en utilisant l'option network=host
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
       docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm --network=host web_staging python manage.py migrate &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm --network=host web_staging python manage.py collectstatic --noinput &&
       docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
+
+    # Vérifier les logs du conteneur
+    - ssh $DO_USER@$DO_IP "
+      cd /home/django/recovr_software/staging &&
+      docker-compose -f docker_compose.staging.yml logs web_staging"
   only:
     - master
 
