@@ -154,12 +154,11 @@ variables:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh $DO_USER@$DO_IP "echo 'SSH connection test successful'"
 
-# Déploiement staging
 deploy-staging:
   image: docker:24.0.5
   stage: deploy-staging
   before_script:
-    - apk add --no-cache openssh-client rsync bash
+    - apk add --no-cache openssh-client rsync bash postgresql-client
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
@@ -168,20 +167,16 @@ deploy-staging:
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
-    # Diagnostic rapide
+    # Test de la connexion à PostgreSQL depuis le serveur
     - ssh $DO_USER@$DO_IP "
       echo '=== Test connexion PostgreSQL ===' &&
-      PGPASSWORD='$STAGING_DB_PASSWORD' psql -h $STAGING_DB_HOST -U $STAGING_DB_USER -d $STAGING_DB_NAME -c 'SELECT 1'"
+      PGPASSWORD='$STAGING_DB_PASSWORD' psql -h $STAGING_DB_HOST -p $STAGING_DB_PORT -U $STAGING_DB_USER -d $STAGING_DB_NAME -c 'SELECT version()'"
 
     # Préparer le dossier distant
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
 
-    # Copier les docker-compose
-    - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
-
-    # Générer le .env localement avec l'adresse IP correcte
+    # Générer le fichier .env.staging
     - |
       cat > .env.staging << EOF
       # Staging environment
@@ -192,28 +187,44 @@ deploy-staging:
       DB_NAME=$STAGING_DB_NAME
       DB_USER=$STAGING_DB_USER
       DB_PASSWORD=$STAGING_DB_PASSWORD
-      # Utiliser l'adresse IP correcte du serveur DB
       DB_HOST=$STAGING_DB_HOST
       DB_PORT=$STAGING_DB_PORT
       ENVIRONMENT=staging
       EOF
 
-    # Envoyer le .env sur le serveur
+    # Copier les fichiers sur le serveur
+    - rsync -avz --exclude '.git/' --exclude 'venv/' --exclude '__pycache__/' --exclude '*.pyc' . $DO_USER@$DO_IP:/home/django/recovr_software/staging/
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
 
-    # Déployer avec docker compose (utilisant le .env.staging explicitement)
+    # Exécuter les commandes de déploiement
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
+      # Créer le réseau Docker s'il n'existe pas
+      docker network create recovr_network 2>/dev/null || true &&
+      # Créer les volumes Docker s'ils n'existent pas
+      docker volume create static_staging 2>/dev/null || true &&
+      docker volume create media_staging 2>/dev/null || true &&
+      # Construction de l'image
+      echo 'Construction de l'image...' &&
+      docker-compose -f docker_compose.staging.yml build web_staging &&
+      # Démarrage des services
+      echo 'Démarrage des services...' &&
+      docker-compose -f docker_compose.staging.yml up -d web_staging"
 
-    # Vérifier les logs du conteneur
+    # Vérifier l'état et les logs du conteneur
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
-      sleep 3 &&
-      docker-compose -f docker_compose.staging.yml logs web_staging"
+      sleep 5 &&
+      echo '=== État du conteneur ===' &&
+      docker-compose -f docker_compose.staging.yml ps &&
+      echo '=== Logs du conteneur ===' &&
+      docker-compose -f docker_compose.staging.yml logs --tail=50 web_staging"
+
+    # Vérifier la santé de l'application
+    - ssh $DO_USER@$DO_IP "
+      cd /home/django/recovr_software/staging &&
+      echo '=== Test de santé de l'application ===' &&
+      curl -fsSL http://localhost:8001/health/ || echo 'Le endpoint de santé n'est pas encore disponible'"
   only:
     - master
 

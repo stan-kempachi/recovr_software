@@ -11,7 +11,7 @@ services:
       args:
         - ENVIRONMENT=staging
     env_file:
-      - .env
+      - .env.staging
     command: >
       bash -c "python manage.py migrate --noinput && 
                python manage.py collectstatic --noinput && 
@@ -21,6 +21,8 @@ services:
       - media_staging:/app/media
     environment:
       DJANGO_SETTINGS_MODULE: config.staging_settings
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
     ports:
       - "8001:8001"
     networks:
@@ -39,6 +41,4 @@ networks:
 
 volumes:
   static_staging:
-    external: true
   media_staging:
-    external: true
