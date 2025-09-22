@@ -180,19 +180,27 @@ deploy-staging:
     - |
       echo "# Staging environment" > .env.staging
       echo "DEBUG=False" >> .env.staging
-      echo "SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
+      echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
       echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.staging
       echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
-      echo "DB_NAME=$STAGING_DB_NAME" >> .env.staging
-      echo "DB_USER=$STAGING_DB_USER" >> .env.staging
-      echo "DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
-      echo "DB_HOST=$STAGING_DB_HOST" >> .env.staging
-      echo "DB_PORT=$STAGING_DB_PORT" >> .env.staging
+      echo "STAGING_DB_NAME=$STAGING_DB_NAME" >> .env.staging
+      echo "STAGING_DB_USER=$STAGING_DB_USER" >> .env.staging
+      echo "STAGING_DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
+      echo "STAGING_DB_HOST=$STAGING_DB_HOST" >> .env.staging
+      echo "STAGING_DB_PORT=$STAGING_DB_PORT" >> .env.staging
       echo "ENVIRONMENT=staging" >> .env.staging    
       echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging
       echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.staging
+
     # Envoyer le .env sur le serveur
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
+
+    # diagnostic
+    - ssh $DO_USER@$DO_IP "
+      cd /home/django/recovr_software/staging &&
+      echo 'Contenu du fichier .env.staging:' &&
+      cat .env.staging | grep -v PASSWORD &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml config | grep environment"
 
     # Déployer avec docker compose
     - ssh $DO_USER@$DO_IP "
