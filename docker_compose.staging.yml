@@ -2,8 +2,6 @@ version: '3.8'
 
 services:
   web_staging:
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     container_name: recovr_web_staging
     build:
       context: .
@@ -20,11 +18,10 @@ services:
       - static_staging:/app/staticfiles
       - media_staging:/app/media
     environment:
-      DJANGO_SETTINGS_MODULE: config.staging_settings
       ENVIRONMENT: staging
       SECRET_KEY: ${STAGING_SECRET_KEY}
-      DEBUG: "True"
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      DEBUG: "True"  # Plus de debug en staging
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
       DB_NAME: ${STAGING_DB_NAME}
       DB_USER: ${STAGING_DB_USER}
       DB_PASSWORD: ${STAGING_DB_PASSWORD}
@@ -48,4 +45,6 @@ networks:
 
 volumes:
   static_staging:
+    external: true
   media_staging:
+    external: true
