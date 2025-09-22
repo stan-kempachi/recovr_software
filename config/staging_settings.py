@@ -17,16 +17,8 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME"),
         "USER": os.getenv("DB_USER"),
         "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST")
-        or "host.docker.internal",  # Assure une valeur non vide
-        "PORT": os.getenv("DB_PORT") or "5432",  # Assure une valeur non vide
-        # Forcer explicitement le protocole TCP
-        "OPTIONS": {
-            "connect_timeout": 5,
-            "client_encoding": "UTF8",
-            "host": os.getenv("DB_HOST")
-            or "host.docker.internal",  # Redondant mais utile
-        },
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 
@@ -92,3 +84,5 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     }
 }
+
+DJANGO_SETTINGS_MODULE = os.getenv("DJANGO_SETTINGS_MODULE")
