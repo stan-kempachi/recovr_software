@@ -154,11 +154,12 @@ variables:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh $DO_USER@$DO_IP "echo 'SSH connection test successful'"
 
+# Déploiement staging
 deploy-staging:
   image: docker:24.0.5
   stage: deploy-staging
   before_script:
-    - apk add --no-cache openssh-client rsync bash postgresql-client
+    - apk add --no-cache openssh-client rsync bash
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
@@ -167,16 +168,19 @@ deploy-staging:
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
-    # Test de la connexion à PostgreSQL depuis le serveur
+    # Diagnostic rapide
     - ssh $DO_USER@$DO_IP "
       echo '=== Test connexion PostgreSQL ===' &&
-      PGPASSWORD='$STAGING_DB_PASSWORD' psql -h $STAGING_DB_HOST -p $STAGING_DB_PORT -U $STAGING_DB_USER -d $STAGING_DB_NAME -c 'SELECT version()'"
+      PGPASSWORD='$STAGING_DB_PASSWORD' psql -h $STAGING_DB_HOST -U $STAGING_DB_USER -d $STAGING_DB_NAME -c 'SELECT 1'"
 
     # Préparer le dossier distant
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
 
-    # Générer le fichier .env.staging
+    # Copier les docker-compose
+    - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
+
+    # Générer le .env localement avec l'adresse IP correcte
     - |
       cat > .env.staging << EOF
       # Staging environment
@@ -190,41 +194,25 @@ deploy-staging:
       DB_HOST=$STAGING_DB_HOST
       DB_PORT=$STAGING_DB_PORT
       ENVIRONMENT=staging
+      DJANGO_SETTINGS_MODULE=config.staging_settings
       EOF
 
-    # Copier les fichiers sur le serveur
-    - rsync -avz --exclude '.git/' --exclude 'venv/' --exclude '__pycache__/' --exclude '*.pyc' . $DO_USER@$DO_IP:/home/django/recovr_software/staging/
+    # Envoyer le .env sur le serveur
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
 
-    # Exécuter les commandes de déploiement
+    # Déployer avec docker compose (utilisant le .env.staging explicitement)
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
-      # Créer le réseau Docker s'il n'existe pas
-      docker network create recovr_network 2>/dev/null || true &&
-      # Créer les volumes Docker s'ils n'existent pas
-      docker volume create static_staging 2>/dev/null || true &&
-      docker volume create media_staging 2>/dev/null || true &&
-      # Construction de l'image
-      echo 'Construction de l'image...' &&
-      docker-compose -f docker_compose.staging.yml build web_staging &&
-      # Démarrage des services
-      echo 'Démarrage des services...' &&
-      docker-compose -f docker_compose.staging.yml up -d web_staging"
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
 
-    # Vérifier l'état et les logs du conteneur
+    # Vérifier les logs du conteneur
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
-      sleep 5 &&
-      echo '=== État du conteneur ===' &&
-      docker-compose -f docker_compose.staging.yml ps &&
-      echo '=== Logs du conteneur ===' &&
-      docker-compose -f docker_compose.staging.yml logs --tail=50 web_staging"
-
-    # Vérifier la santé de l'application
-    - ssh $DO_USER@$DO_IP "
-      cd /home/django/recovr_software/staging &&
-      echo '=== Test de santé de l'application ===' &&
-      curl -fsSL http://localhost:8001/health/ || echo 'Le endpoint de santé n'est pas encore disponible'"
+      sleep 3 &&
+      docker-compose -f docker_compose.staging.yml logs web_staging"
   only:
     - master
 
