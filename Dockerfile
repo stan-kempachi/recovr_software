@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Installation des dépendances système
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl\
+    curl \
     build-essential \
     libpq-dev \
     gettext \
@@ -18,20 +18,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation de Poetry
-RUN pip install --upgrade pip \
-    && pip install poetry
+RUN pip install --upgrade pip && pip install poetry
 
 # Copie des fichiers de dépendances
-COPY pyproject.toml /app/
-
-# Installer les dépendances
-RUN poetry install --only main --no-interaction --no-ansi --no-root
+COPY pyproject.toml poetry.lock /app/
 
 # Configuration de Poetry pour ne pas créer d'environnement virtuel
 RUN poetry config virtualenvs.create false
-
-# Régénérer le fichier lock si nécessaire
-RUN poetry lock
 
 # Installer les dépendances en fonction de l'environnement
 ARG ENVIRONMENT=production
@@ -46,9 +39,6 @@ COPY . /app/
 
 # Création des répertoires pour les fichiers statiques et médias
 RUN mkdir -p /app/staticfiles /app/media
-
-# Collecte des fichiers statiques - sera exécutée au démarrage dans le docker-compose
-# pour utiliser les variables d'environnement correctes
 
 # Exposer le port
 EXPOSE 8000

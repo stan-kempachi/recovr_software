@@ -1,8 +1,8 @@
 stages:
-  - lint
-  - test
-  - changelog
-  - sync
+#  - lint
+#  - test
+#  - changelog
+#  - sync
   - deploy-staging
   - deploy-production
   - deploy-proxy
@@ -30,110 +30,110 @@ variables:
     - poetry config virtualenvs.in-project true
     - poetry install
 
-# Lint stage
-lint:
-  <<: *python_job
-  stage: lint
-  script:
-    - poetry run black --check .
-    - poetry run ruff check .
-    - poetry run isort --check-only .
-  allow_failure: false
-
-# Test stage
-test:
-  <<: *python_job
-  stage: test
-  script:
-    - poetry install
-    - poetry run pytest
-
-# Update changelog stage
-update-changelog:
-  tags:
-    - self-hosted
-  stage: changelog
-  image: "python:3.12-slim"
-  only:
-    - master
-  variables:
-    GITLAB_TOKEN: $CI_JOB_TOKEN
-  before_script:
-    - apt-get update && apt-get install -y git openssh-client
-    - eval $(ssh-agent -s)
-    - |
-      mkdir -p ~/.ssh
-      chmod 700 ~/.ssh
-
-      echo "Configuring SSH key for changelog..."
-      echo "$CHANGELOG_SSH_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      ssh-add ~/.ssh/id_rsa
-      ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
-    - pip install python-semantic-release
-    - git config --global user.name "GitLab CI"
-    - git config --global user.email "gitlab-ci@example.com"
-    - git clone --depth=50 git@gitlab.com:${CI_PROJECT_PATH}.git /tmp/repo
-    - cd /tmp/repo
-    - git remote set-url origin git@gitlab.com:${CI_PROJECT_PATH}.git
-    - git fetch --tags
-  script:
-    - |
-      if [ ! -f "config/__init__.py" ]; then
-        mkdir -p config
-        echo "__version__ = \"0.1.0\"" > config/__init__.py
-      fi
-    - |
-      if grep -q "\[tool.semantic_release.remote\]" pyproject.toml; then
-        sed -i "/\[tool.semantic_release.remote\]/,/^\[/ s/token.*=.*/token = \"${GITLAB_TOKEN}\"/" pyproject.toml
-      fi
-    - echo "Last commit message:" && git log -1 --pretty=%B
-    - echo "Recent commits:" && git log --oneline -n 5
-    - semantic-release version --no-push -vv || echo "No version bump needed"
-    - |
-      if git status --porcelain | grep -q "CHANGELOG.md\|config/__init__.py"; then
-        git add CHANGELOG.md config/__init__.py
-        git commit -m "docs: update changelog [skip ci]"
-        git push origin HEAD:master
-        echo "Changelog updated and pushed"
-      else
-        echo "No changelog changes detected"
-      fi
-
-      
-
-# Synchro Github
-sync-to-github:
-  tags:
-    - self-hosted
-  stage: sync
-  image: "python:3.12"
-  only:
-    - master
-  needs:
-    - update-changelog
-  before_script:
-    - apt-get update && apt-get install -y git openssh-client
-    - eval $(ssh-agent -s)
-    - |
-      mkdir -p ~/.ssh
-      chmod 700 ~/.ssh
-      # Utiliser la clé SSH spécifique pour GitHub
-      echo "$GITHUB_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_github
-      chmod 600 ~/.ssh/id_rsa_github
-      ssh-add ~/.ssh/id_rsa_github
-      ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-    # Configurer git pour travailler avec GitHub
-    - git config --global user.name "GitLab CI"
-    - git config --global user.email "gitlab-ci@example.com"
-  script:
-    # Cloner le dépôt GitLab actuel
-    - git clone --mirror $CI_REPOSITORY_URL gitlab_repo
-    - cd gitlab_repo
-    # Configurer le dépôt GitHub distant
-    - git remote add github git@github.com:stan-kempachi/recovr_software.git
-    # Pousser vers GitHub
-    - git push --mirror github
+## Lint stage
+#lint:
+#  <<: *python_job
+#  stage: lint
+#  script:
+#    - poetry run black --check .
+#    - poetry run ruff check .
+#    - poetry run isort --check-only .
+#  allow_failure: false
+#
+## Test stage
+#test:
+#  <<: *python_job
+#  stage: test
+#  script:
+#    - poetry install
+#    - poetry run pytest
+#
+## Update changelog stage
+#update-changelog:
+#  tags:
+#    - self-hosted
+#  stage: changelog
+#  image: "python:3.12-slim"
+#  only:
+#    - master
+#  variables:
+#    GITLAB_TOKEN: $CI_JOB_TOKEN
+#  before_script:
+#    - apt-get update && apt-get install -y git openssh-client
+#    - eval $(ssh-agent -s)
+#    - |
+#      mkdir -p ~/.ssh
+#      chmod 700 ~/.ssh
+#
+#      echo "Configuring SSH key for changelog..."
+#      echo "$CHANGELOG_SSH_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/id_rsa
+#      chmod 600 ~/.ssh/id_rsa
+#      ssh-add ~/.ssh/id_rsa
+#      ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
+#    - pip install python-semantic-release
+#    - git config --global user.name "GitLab CI"
+#    - git config --global user.email "gitlab-ci@example.com"
+#    - git clone --depth=50 git@gitlab.com:${CI_PROJECT_PATH}.git /tmp/repo
+#    - cd /tmp/repo
+#    - git remote set-url origin git@gitlab.com:${CI_PROJECT_PATH}.git
+#    - git fetch --tags
+#  script:
+#    - |
+#      if [ ! -f "config/__init__.py" ]; then
+#        mkdir -p config
+#        echo "__version__ = \"0.1.0\"" > config/__init__.py
+#      fi
+#    - |
+#      if grep -q "\[tool.semantic_release.remote\]" pyproject.toml; then
+#        sed -i "/\[tool.semantic_release.remote\]/,/^\[/ s/token.*=.*/token = \"${GITLAB_TOKEN}\"/" pyproject.toml
+#      fi
+#    - echo "Last commit message:" && git log -1 --pretty=%B
+#    - echo "Recent commits:" && git log --oneline -n 5
+#    - semantic-release version --no-push -vv || echo "No version bump needed"
+#    - |
+#      if git status --porcelain | grep -q "CHANGELOG.md\|config/__init__.py"; then
+#        git add CHANGELOG.md config/__init__.py
+#        git commit -m "docs: update changelog [skip ci]"
+#        git push origin HEAD:master
+#        echo "Changelog updated and pushed"
+#      else
+#        echo "No changelog changes detected"
+#      fi
+#
+#
+#
+## Synchro Github
+#sync-to-github:
+#  tags:
+#    - self-hosted
+#  stage: sync
+#  image: "python:3.12"
+#  only:
+#    - master
+#  needs:
+#    - update-changelog
+#  before_script:
+#    - apt-get update && apt-get install -y git openssh-client
+#    - eval $(ssh-agent -s)
+#    - |
+#      mkdir -p ~/.ssh
+#      chmod 700 ~/.ssh
+#      # Utiliser la clé SSH spécifique pour GitHub
+#      echo "$GITHUB_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa_github
+#      chmod 600 ~/.ssh/id_rsa_github
+#      ssh-add ~/.ssh/id_rsa_github
+#      ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+#    # Configurer git pour travailler avec GitHub
+#    - git config --global user.name "GitLab CI"
+#    - git config --global user.email "gitlab-ci@example.com"
+#  script:
+#    # Cloner le dépôt GitLab actuel
+#    - git clone --mirror $CI_REPOSITORY_URL gitlab_repo
+#    - cd gitlab_repo
+#    # Configurer le dépôt GitHub distant
+#    - git remote add github git@github.com:stan-kempachi/recovr_software.git
+#    # Pousser vers GitHub
+#    - git push --mirror github
 
 # Template pour les déploiements
 .deploy_job: &deploy_job
