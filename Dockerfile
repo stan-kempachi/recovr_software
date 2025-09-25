@@ -24,6 +24,9 @@ RUN pip install --upgrade pip \
 # Copie des fichiers de dépendances
 COPY pyproject.toml /app/
 
+# Installer les dépendances
+RUN poetry install --only main --no-interaction --no-ansi --no-root
+
 # Configuration de Poetry pour ne pas créer d'environnement virtuel
 RUN poetry config virtualenvs.create false
 
