@@ -21,7 +21,7 @@ variables:
 
 # Template pour les jobs Python avec runner auto-hébergé
 .python_job: &python_job
-  image: "python:3.12-slim"
+  image: "python:3.12"
 #  <<: *poetry_cache
   tags:
     - self-hosted
