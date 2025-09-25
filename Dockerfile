@@ -44,3 +44,4 @@ RUN mkdir -p /app/staticfiles /app/media
 EXPOSE 8000
 
 # La commande par défaut sera définie dans docker-compose.yml
+
