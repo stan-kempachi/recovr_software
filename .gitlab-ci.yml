@@ -205,7 +205,7 @@ deploy-staging:
     # Déployer avec docker compose
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml build web_staging &&
+      docker-compose --env-file .env.staging -f docker_compose.staging.yml build --no-cache web_staging &&
       docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
       docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
       docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
