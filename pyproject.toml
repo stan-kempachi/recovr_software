@@ -50,3 +50,4 @@ patch_tags = ["fix", "perf"]
 type = "gitlab"
 repository = "django1361117/recovr_software"
 gitlab_url = "https://gitlab.com"
+
