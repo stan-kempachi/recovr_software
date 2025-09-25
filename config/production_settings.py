@@ -11,6 +11,35 @@ DEBUG = False
 # Permettre l'accès depuis le domaine de production
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
+INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # Applications RecovR
+    "accounts",
+    "api_connectors",
+    "compliance",
+    "core",
+    "dashboard",
+    "invoices",
+    "notifications",
+    "reporting",
+    "recovr_software",
+    "tests",
+    # Dépendances tierces
+    "rest_framework",
+    "corsheaders",
+    # Django-allauth
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+]
+
 db_host = os.getenv("DB_HOST", "")
 if not db_host or db_host.lower() in ["localhost", "127.0.0.1"]:
     db_host = "host.docker.internal"
