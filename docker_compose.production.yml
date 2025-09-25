@@ -27,6 +27,9 @@ services:
       DB_PASSWORD: ${PRODUCTION_DB_PASSWORD}
       DB_HOST: ${PRODUCTION_DB_HOST}
       DB_PORT: ${PRODUCTION_DB_PORT:-5432}
+      GOOGLE_OAUTH2_CLIENT_ID: ${GOOGLE_OAUTH2_CLIENT_ID}
+      GOOGLE_OAUTH2_CLIENT_SECRET: ${GOOGLE_OAUTH2_CLIENT_SECRET}
+      DJANGO_SETTINGS_MODULE: config.production_settings
     ports:
       - "8000:8000"  # Exposer le port pour debug si nécessaire
     networks:
