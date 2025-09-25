@@ -1,3 +1,15 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [1.1.0](https://gitlab.com/django1361117/recovr_software/compare/v1.5.0...v1.1.0) (2025-09-25)
+
+
+### Features
+
+* add google OAUTH2 authentification ([bc129f4](https://gitlab.com/django1361117/recovr_software/commit/bc129f4a58c7d0c0b48b2a5321cb5601eabde2cc))
+* add ssl/certbot configuration ([0b31b17](https://gitlab.com/django1361117/recovr_software/commit/0b31b1730ba548accca93cc296b68336109eee92))
+
 # CHANGELOG
 
 <!-- version list -->
