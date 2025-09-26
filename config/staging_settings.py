@@ -7,6 +7,8 @@ from pathlib import Path
 
 from . import settings  # noqa: F401
 
+MIDDLEWARE = settings.MIDDLEWARE
+
 # Désactiver le debug en staging
 DEBUG = False
 
