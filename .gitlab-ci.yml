@@ -21,7 +21,7 @@ variables:
 
 # Template pour les jobs Python avec runner auto-hébergé
 .python_job: &python_job
-  image: "python:3.12"
+  image: "python:3.12-slim"
 #  <<: *poetry_cache
   tags:
     - self-hosted
@@ -168,10 +168,6 @@ deploy-staging:
     - chmod 600 ~/.ssh/id_rsa
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
-    - pip install poetry
-    - poetry config virtualenvs.create false
-    - poetry install --no-interaction --no-ansi --no-root
-    - poetry show django-allauth  #debug
   script:
     # Préparer le dossier distant
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
