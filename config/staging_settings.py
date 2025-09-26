@@ -7,7 +7,17 @@ from pathlib import Path
 
 from . import settings  # noqa: F401
 
-MIDDLEWARE = settings.MIDDLEWARE
+# Middleware
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+]
 
 # Désactiver le debug en staging
 DEBUG = False
