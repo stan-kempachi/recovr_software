@@ -175,11 +175,13 @@ deploy-staging:
       echo "STAGING_DB_HOST=$STAGING_DB_HOST" >> .env.staging
       echo "STAGING_DB_PORT=$STAGING_DB_PORT" >> .env.staging
       echo "ENVIRONMENT=staging" >> .env.staging
-      echo "DJANGO_SETTINGS_MODULE=config.staging_settings" >> .env.staging
+      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging
+      echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.staging
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
     # Build et lancement
     - ssh $DO_USER@$DO_IP "
         cd /home/django/recovr_software/staging &&
+        export DJANGO_SETTINGS_MODULE=config.staging_settings &&
         docker-compose --env-file .env.staging -f docker_compose.staging.yml build --no-cache web_staging &&
         docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate --settings=config.staging_settings &&
         docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput --settings=config.staging_settings &&
@@ -208,12 +210,14 @@ deploy-production:
       echo "PRODUCTION_DB_HOST=$PRODUCTION_DB_HOST" >> .env.production
       echo "PRODUCTION_DB_PORT=$PRODUCTION_DB_PORT" >> .env.production
       echo "ENVIRONMENT=production" >> .env.production
-      echo "DJANGO_SETTINGS_MODULE=config.production_settings" >> .env.production
+      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.production
+      echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.production
 
     - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env.production
     # Build et lancement
     - ssh $DO_USER@$DO_IP "
         cd /home/django/recovr_software/production &&
+        export DJANGO_SETTINGS_MODULE=config.production_settings &&
         docker-compose --env-file .env.production -f docker_compose.production.yml build --no-cache web_production &&
         docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py migrate --settings=config.production_settings &&
         docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py collectstatic --noinput --settings=config.production_settings &&
