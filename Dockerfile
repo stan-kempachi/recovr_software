@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-# Variables d'environnement
+# Variables d'environnement Python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -22,24 +22,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Installer Poetry et configurer pour ne pas créer d'environnement virtuel
+# Installer Poetry et désactiver les environnements virtuels
 RUN curl -sSL https://install.python-poetry.org | python3 - \
-    && /opt/poetry/bin/poetry config virtualenvs.create false
+    && poetry config virtualenvs.create false
 
-# Copier les fichiers de dépendances
+# Copier uniquement les fichiers de dépendances et installer
 COPY pyproject.toml poetry.lock /app/
-
-# Installer les dépendances via Poetry
-RUN /opt/poetry/bin/poetry install --no-interaction --no-ansi --no-root --no-cache
+RUN poetry install --no-interaction --no-ansi --no-root --no-cache
 
 # Copier le reste du code
 COPY . /app/
 
-# Créer les répertoires pour les fichiers statiques et médias
+# Créer les répertoires pour staticfiles et media
 RUN mkdir -p /app/staticfiles /app/media
 
-# Exposer le port
+# Exposer le port Django
 EXPOSE 8000
 
-# Commande par défaut, à remplacer ou surcharger via docker-compose
+# Commande par défaut (peut être surchargée par docker-compose)
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -157,15 +157,23 @@ variables:
 
 # Déploiement staging
 deploy-staging:
-  <<: *deploy_job
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
   stage: deploy-staging
+  tags:
+    - self-hosted
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   before_script:
     - apt-get update && apt-get install -y openssh-client rsync
-    - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
+    - eval $(ssh-agent -s)
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
@@ -173,13 +181,13 @@ deploy-staging:
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
 
-    # Copier le docker-compose
+    # Copier docker-compose et fichiers de dépendances
     - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
+    - scp pyproject.toml poetry.lock $DO_USER@$DO_IP:/home/django/recovr_software/staging/
 
-    # Générer le .env localement
+    # Générer le .env et l’envoyer
     - |
-      echo "# Staging environment" > .env.staging
-      echo "DEBUG=False" >> .env.staging
+      echo "DEBUG=False" > .env.staging
       echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
       echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.staging
       echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
@@ -188,21 +196,10 @@ deploy-staging:
       echo "STAGING_DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
       echo "STAGING_DB_HOST=$STAGING_DB_HOST" >> .env.staging
       echo "STAGING_DB_PORT=$STAGING_DB_PORT" >> .env.staging
-      echo "ENVIRONMENT=staging" >> .env.staging    
-      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging
-      echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.staging
-
-    # Envoyer le .env sur le serveur
+      echo "ENVIRONMENT=staging" >> .env.staging
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
 
-    # diagnostic
-    - ssh $DO_USER@$DO_IP "
-      cd /home/django/recovr_software/staging &&
-      echo 'Contenu du fichier .env.staging:' &&
-      cat .env.staging | grep -v PASSWORD &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml config | grep environment"
-
-    # Déployer avec docker compose
+    # Build et déploiement Docker
     - ssh $DO_USER@$DO_IP "
       cd /home/django/recovr_software/staging &&
       docker-compose --env-file .env.staging -f docker_compose.staging.yml build --no-cache web_staging &&
