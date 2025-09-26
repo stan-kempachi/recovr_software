@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Copier le code
+COPY . /app/
+
 # Installer Poetry et désactiver les environnements virtuels
 RUN curl -sSL https://install.python-poetry.org | python3 - \
     && poetry config virtualenvs.create false
@@ -29,9 +32,6 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 # Copier uniquement les fichiers de dépendances et installer
 COPY pyproject.toml poetry.lock /app/
 RUN poetry install --no-interaction --no-ansi --no-root --no-cache
-
-# Copier le reste du code
-COPY . /app/
 
 # Créer les répertoires pour staticfiles et media
 RUN mkdir -p /app/staticfiles /app/media
