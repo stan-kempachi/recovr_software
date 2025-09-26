@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "allauth_ui",
 ]
 
 # Base de données PostgreSQL pour l'environnement staging
