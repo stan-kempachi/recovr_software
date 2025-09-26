@@ -24,7 +24,7 @@ COPY pyproject.toml poetry.lock /app/
 RUN poetry config virtualenvs.create false
 
 # Installation de Poetry
-RUN poetry install --no-interaction --no-ansi --no-root
+RUN poetry install --no-interaction --no-ansi --no-root --no-cache
 
 # Installer les dépendances en fonction de l'environnement
 ARG ENVIRONMENT=production
