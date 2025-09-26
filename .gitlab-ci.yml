@@ -174,6 +174,7 @@ deploy-staging:
       echo "STAGING_DB_HOST=$STAGING_DB_HOST" >> .env.staging
       echo "STAGING_DB_PORT=$STAGING_DB_PORT" >> .env.staging
       echo "ENVIRONMENT=staging" >> .env.staging
+      echo "DJANGO_SETTINGS_MODULE=config.staging_settings" >> .env.staging
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
     # Build et lancement
     - ssh $DO_USER@$DO_IP "
@@ -206,6 +207,8 @@ deploy-production:
       echo "PRODUCTION_DB_HOST=$PRODUCTION_DB_HOST" >> .env.production
       echo "PRODUCTION_DB_PORT=$PRODUCTION_DB_PORT" >> .env.production
       echo "ENVIRONMENT=production" >> .env.production
+      echo "DJANGO_SETTINGS_MODULE=config.production_settings" >> .env.production
+
     - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env.production
     # Build et lancement
     - ssh $DO_USER@$DO_IP "
