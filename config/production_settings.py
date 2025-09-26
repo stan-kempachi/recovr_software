@@ -41,6 +41,17 @@ INSTALLED_APPS = [
     "allauth_ui",
 ]
 
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+]
+
 db_host = os.getenv("DB_HOST", "")
 if not db_host or db_host.lower() in ["localhost", "127.0.0.1"]:
     db_host = "host.docker.internal"
