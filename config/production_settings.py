@@ -7,6 +7,8 @@ from pathlib import Path
 
 from . import settings  # noqa: F401
 
+MIDDLEWARE = settings.MIDDLEWARE
+
 DEBUG = False
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
