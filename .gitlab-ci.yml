@@ -8,21 +8,23 @@ stages:
   - deploy-proxy
 
 variables:
-  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
 
 ## Cache global pour Poetry
-#.poetry_cache: &poetry_cache
-#  cache:
-#    key: poetry-cache-$CI_COMMIT_REF_SLUG
-#    paths:
-#      - .cache/pypoetry
-#      - .venv/
+.poetry_cache: &poetry_cache
+  cache:
+    key: poetry-cache-$CI_COMMIT_REF_SLUG
+    paths:
+      - .cache/pypoetry
+      - .venv/
 
 # Template pour les jobs Python avec runner auto-hébergé
 .python_job: &python_job
   image: "python:3.12-slim"
-#  <<: *poetry_cache
+  <<: *poetry_cache
   tags:
     - self-hosted
   before_script:
@@ -135,57 +137,32 @@ variables:
 #    # Pousser vers GitHub
 #    - git push --mirror github
 
-# Template pour les déploiements
+# Template de job de déploiement
 .deploy_job: &deploy_job
-  tags:
-    - self-hosted
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
-  variables:
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_TLS_VERIFY: 1
-    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
-  before_script:
-    - apt-get update && apt-get install -y openssh-client bash rsync
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
-    - ssh $DO_USER@$DO_IP "echo 'SSH connection test successful'"
-
-# Déploiement staging
-deploy-staging:
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  stage: deploy-staging
   tags:
     - self-hosted
-  variables:
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_TLS_VERIFY: 1
-    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   before_script:
-    - apt-get update && apt-get install -y openssh-client rsync
+    - apt-get update && apt-get install -y openssh-client rsync bash
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - eval $(ssh-agent -s)
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
+
+# ---------------------------
+# Déploiement Staging
+# ---------------------------
+deploy-staging:
+  <<: *deploy_job
+  stage: deploy-staging
   script:
-    # Préparer le dossier distant
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging"
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
-
-    # Copier docker-compose et fichiers de dépendances
-    - scp docker_compose.staging.yml $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-    - scp pyproject.toml poetry.lock $DO_USER@$DO_IP:/home/django/recovr_software/staging/
-
-    # Générer le .env et l’envoyer
+    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging /home/django/recovr_software/logs/nginx"
+    - scp docker_compose.staging.yml pyproject.toml poetry.lock $DO_USER@$DO_IP:/home/django/recovr_software/staging/
+    # Génération du .env staging
     - |
       echo "DEBUG=False" > .env.staging
       echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
@@ -198,40 +175,28 @@ deploy-staging:
       echo "STAGING_DB_PORT=$STAGING_DB_PORT" >> .env.staging
       echo "ENVIRONMENT=staging" >> .env.staging
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
-
-    # Build et déploiement Docker
+    # Build et lancement
     - ssh $DO_USER@$DO_IP "
-      cd /home/django/recovr_software/staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml build --no-cache web_staging &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
-      docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
+        cd /home/django/recovr_software/staging &&
+        docker-compose --env-file .env.staging -f docker_compose.staging.yml build --no-cache web_staging &&
+        docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate &&
+        docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput &&
+        docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
   only:
     - master
 
-# Déploiement production
+# ---------------------------
+# Déploiement Production
+# ---------------------------
 deploy-production:
   <<: *deploy_job
   stage: deploy-production
-  before_script:
-    - apt-get update && apt-get install -y openssh-client rsync
-    - eval $(ssh-agent -s)
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
-    # Préparer le dossier distant
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production"
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
-
-    # Copier le docker-compose
-    - scp docker_compose.production.yml $DO_USER@$DO_IP:/home/django/recovr_software/production/
-
-   # Préparer le .env pour production
+    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production /home/django/recovr_software/logs/nginx"
+    - scp docker_compose.production.yml pyproject.toml poetry.lock $DO_USER@$DO_IP:/home/django/recovr_software/production/
+    # Génération du .env production
     - |
-      echo "# Production environment" > .env.production
-      echo "DEBUG=False" >> .env.production
+      echo "DEBUG=False" > .env.production
       echo "PRODUCTION_SECRET_KEY=$PRODUCTION_SECRET_KEY" >> .env.production
       echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.production
       echo "DB_ENGINE=django.db.backends.postgresql" >> .env.production
@@ -241,58 +206,40 @@ deploy-production:
       echo "PRODUCTION_DB_HOST=$PRODUCTION_DB_HOST" >> .env.production
       echo "PRODUCTION_DB_PORT=$PRODUCTION_DB_PORT" >> .env.production
       echo "ENVIRONMENT=production" >> .env.production
-      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.production
-      echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.production
-
-    # Envoyer le .env sur le serveur
     - scp .env.production $DO_USER@$DO_IP:/home/django/recovr_software/production/.env.production
-
-    # Déployer avec docker compose
+    # Build et lancement
     - ssh $DO_USER@$DO_IP "
-      cd /home/django/recovr_software/production &&
-      docker-compose --env-file .env.production -f docker_compose.production.yml build web_production &&
-      docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py migrate &&
-      docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py collectstatic --noinput &&
-      docker-compose --env-file .env.production -f docker_compose.production.yml up -d web_production"
-
-    # Nettoyage des images Docker inutilisées pour libérer de l'espace
-    - ssh $DO_USER@$DO_IP "docker image prune -f"
+        cd /home/django/recovr_software/production &&
+        docker-compose --env-file .env.production -f docker_compose.production.yml build --no-cache web_production &&
+        docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py migrate &&
+        docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py collectstatic --noinput &&
+        docker-compose --env-file .env.production -f docker_compose.production.yml up -d web_production &&
+        docker image prune -f"
   only:
     - master
   when: manual
 
-# Job optionnel pour déployer le proxy nginx (à lancer après staging et production)
+# ---------------------------
+# Déploiement Proxy Nginx
+# ---------------------------
 deploy-proxy:
   <<: *deploy_job
   stage: deploy-proxy
-  before_script:
-    - apt-get update && apt-get install -y openssh-client rsync
-    - eval $(ssh-agent -s)
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
   script:
-    # S'assurer que les fichiers nginx sont présents
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/nginx"
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/logs/nginx"
-
-    # Copier le docker-compose
-    - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
-
-    # Démarrer nginx
     - |
-      ssh $DO_USER@$DO_IP "
-      cd /home/django/recovr_software &&
-      
-      # Vérifier que les services web sont en cours d'exécution
-      docker ps | grep recovr_web || echo 'Warning: Web services may not be running' &&
-      
-      # Démarrer le proxy nginx
-      docker-compose -f docker_compose.proxy.yml up -d nginx &&
-      
-      echo 'Proxy deployment completed'
-      "
+      ssh $DO_USER@$DO_IP '
+        mkdir -p /home/django/recovr_software/nginx /home/django/recovr_software/logs/nginx
+      '
+    - scp docker_compose.proxy.yml $DO_USER@$DO_IP:/home/django/recovr_software/
+    - |
+      ssh $DO_USER@$DO_IP '
+        cd /home/django/recovr_software
+        if ! docker ps | grep recovr_web; then
+          echo "Warning: Web services may not be running"
+        fi
+        docker-compose -f docker_compose.proxy.yml up -d nginx
+        echo "Proxy deployment completed"
+      '
   only:
     - master
   when: manual
