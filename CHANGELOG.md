@@ -14,6 +14,53 @@ All notable changes to this project will be documented in this file. See [standa
 
 <!-- version list -->
 
+## v1.6.0 (2025-09-27)
+
+### Chores
+
+- Update poetry.lock to include django-allauth
+  ([`df4b03a`](https://gitlab.com/django1361117/recovr_software/-/commit/df4b03ad46efc0b3f5c392886cdc648d091034c0))
+
+- **release**: 1.1.0
+  ([`e54c057`](https://gitlab.com/django1361117/recovr_software/-/commit/e54c05743ecd186bf717ced012ea4e7f4ab252b3))
+
+### Continuous Integration
+
+- Fix db conf in settings files
+  ([`9f53d27`](https://gitlab.com/django1361117/recovr_software/-/commit/9f53d27b852f1d854b7f63622040cf06aace3b4d))
+
+- Fix db conf in settings files
+  ([`1a1fead`](https://gitlab.com/django1361117/recovr_software/-/commit/1a1feada4da775050f089dd9648c97774c6ad060))
+
+- Reformat to retrieve the correct .env and settings files
+  ([`a793f23`](https://gitlab.com/django1361117/recovr_software/-/commit/a793f237eebe9c8c0b05ead9718f02691fa19fb0))
+
+- Test db conf in settings files
+  ([`e80cae3`](https://gitlab.com/django1361117/recovr_software/-/commit/e80cae35ae6e642c3c5fa3177e749f657a12c5f4))
+
+- Test db conf in settings files
+  ([`810ae81`](https://gitlab.com/django1361117/recovr_software/-/commit/810ae814b2063c774717ee4a3aeb26290da74e3a))
+
+- Test db conf in settings files
+  ([`c4b10ef`](https://gitlab.com/django1361117/recovr_software/-/commit/c4b10ef840752d8ed11ebc4b7ecb69042ef6018f))
+
+### Features
+
+- Add google OAUTH2 authentification
+  ([`bc129f4`](https://gitlab.com/django1361117/recovr_software/-/commit/bc129f4a58c7d0c0b48b2a5321cb5601eabde2cc))
+
+- Add ssl/certbot configuration
+  ([`0b31b17`](https://gitlab.com/django1361117/recovr_software/-/commit/0b31b1730ba548accca93cc296b68336109eee92))
+
+- Succes deployment Oauth2
+  ([`9cfe41b`](https://gitlab.com/django1361117/recovr_software/-/commit/9cfe41b5c82b5607708c706eb0d5804a22f07a9d))
+
+### Refactoring
+
+- Nginx config
+  ([`4e1348a`](https://gitlab.com/django1361117/recovr_software/-/commit/4e1348a06dddab7cf4eca31daf3f9b0e7c2f7c2d))
+
+
 ## v1.5.0 (2025-09-15)
 
 ### Bug Fixes
