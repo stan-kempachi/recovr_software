@@ -22,3 +22,4 @@ static/
 /github_key_lf
 /gitlab-ci-changelog
 /gitlab-ci-changelog.pub
+/.env.staging
