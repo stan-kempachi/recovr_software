@@ -22,22 +22,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copier le code
-COPY . /app/
-
 # Installer Poetry et désactiver les environnements virtuels
 RUN curl -sSL https://install.python-poetry.org | python3 - \
     && poetry config virtualenvs.create false
 
-# Copier uniquement les fichiers de dépendances et installer
+# Copier uniquement les fichiers de dépendances en premier (pour cache)
 COPY pyproject.toml poetry.lock /app/
+
+# Installer les dépendances
 RUN poetry install --no-interaction --no-ansi --no-root --no-cache
+
+# Copier le reste du code (plus tard pour préserver le cache des deps)
+COPY . /app/
 
 # Créer les répertoires pour staticfiles et media
 RUN mkdir -p /app/staticfiles /app/media
 
 # Exposer le port Django
 EXPOSE 8000
+
 
 # Commande par défaut (peut être surchargée par docker-compose)
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
