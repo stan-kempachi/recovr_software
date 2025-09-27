@@ -5,7 +5,7 @@ Settings spécifiques pour l'environnement staging.
 import os
 from pathlib import Path
 
-from . import settings  # noqa: F401
+from .settings import *  # noqa: F403
 
 # Middleware
 MIDDLEWARE = [
