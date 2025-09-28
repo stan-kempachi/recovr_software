@@ -11,9 +11,7 @@ services:
     env_file:
       - .env.staging
     command: >
-      bash -c "python manage.py migrate --noinput && 
-               python manage.py collectstatic --noinput && 
-               gunicorn config.wsgi:application --bind 0.0.0.0:8001 --workers 2 --timeout 120 --reload"
+      bash -c "gunicorn config.wsgi:application --bind 0.0.0.0:8001 --workers 2 --timeout 120 --reload"
     volumes:
       - static_staging:/app/staticfiles
       - media_staging:/app/media
@@ -29,7 +27,6 @@ services:
       DB_PORT: ${STAGING_DB_PORT:-5432}
       GOOGLE_OAUTH2_CLIENT_ID: ${GOOGLE_OAUTH2_CLIENT_ID}
       GOOGLE_OAUTH2_CLIENT_SECRET: ${GOOGLE_OAUTH2_CLIENT_SECRET}
-      DJANGO_SETTINGS_MODULE: config.staging_settings
     ports:
       - "8001:8001"
     networks:
