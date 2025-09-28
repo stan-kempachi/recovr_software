@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - ENVIRONMENT=staging
+        ENVIRONMENT: staging
     env_file:
       - .env.staging
     command: >
@@ -20,6 +20,7 @@ services:
       SECRET_KEY: ${STAGING_SECRET_KEY}
       DEBUG: "True"
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DB_ENGINE: django.db.backends.postgresql
       DB_NAME: ${STAGING_DB_NAME}
       DB_USER: ${STAGING_DB_USER}
       DB_PASSWORD: ${STAGING_DB_PASSWORD}
@@ -33,7 +34,7 @@ services:
       - recovr_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsSL  http://localhost:8001/health/ || wget --quiet --tries=1 --spider http://localhost:8001/health/ || exit 1"]
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:8001/health/ || wget --quiet --tries=1 --spider http://localhost:8001/health/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
