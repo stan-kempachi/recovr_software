@@ -162,7 +162,12 @@ deploy-staging:
   image: python:3.12
   before_script:
     - apt-get update && apt-get install -y openssh-client
+
   script:
+    # Ajouter la clé SSH du serveur distant dans known_hosts pour éviter Host key verification failed
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
+
     # Créer les répertoires nécessaires sur le serveur
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging /home/django/recovr_software/logs/nginx"
 
@@ -170,17 +175,18 @@ deploy-staging:
     - scp docker_compose.staging.yml pyproject.toml poetry.lock $DO_USER@$DO_IP:/home/django/recovr_software/staging/
 
     # Générer le fichier .env.staging localement
-    - echo "DEBUG=False" > .env.staging &&
-      echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging &&
-      echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.staging &&
-      echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging &&
-      echo "STAGING_DB_NAME=$STAGING_DB_NAME" >> .env.staging &&
-      echo "STAGING_DB_USER=$STAGING_DB_USER" >> .env.staging &&
-      echo "STAGING_DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging &&
-      echo "STAGING_DB_HOST=$STAGING_DB_HOST" >> .env.staging &&
-      echo "STAGING_DB_PORT=$STAGING_DB_PORT" >> .env.staging &&
-      echo "ENVIRONMENT=staging" >> .env.staging &&
-      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging &&
+    - |
+      echo "DEBUG=False" > .env.staging
+      echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
+      echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.staging
+      echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
+      echo "STAGING_DB_NAME=$STAGING_DB_NAME" >> .env.staging
+      echo "STAGING_DB_USER=$STAGING_DB_USER" >> .env.staging
+      echo "STAGING_DB_PASSWORD=$STAGING_DB_PASSWORD" >> .env.staging
+      echo "STAGING_DB_HOST=$STAGING_DB_HOST" >> .env.staging
+      echo "STAGING_DB_PORT=$STAGING_DB_PORT" >> .env.staging
+      echo "ENVIRONMENT=staging" >> .env.staging
+      echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging
       echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.staging
 
     # Copier le .env sur le serveur
