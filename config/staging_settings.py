@@ -38,3 +38,5 @@ CSRF_COOKIE_SECURE = False
 
 # Exceptions pour healthchecks
 SECURE_REDIRECT_EXEMPT = [r"^health/$", r"^nginx-health/$"]
+
+LOGIN_REDIRECT_URL = "/staging/"
