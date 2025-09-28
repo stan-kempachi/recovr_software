@@ -32,12 +32,14 @@ COPY pyproject.toml poetry.lock /app/
 # Installer les dépendances
 RUN poetry install --no-interaction --no-ansi --no-root --no-cache
 
+# Copier tout le code du projet
+COPY . /app
+
 # Créer les répertoires pour staticfiles et media
 RUN mkdir -p /app/staticfiles /app/media
 
 # Exposer le port Django
 EXPOSE 8000
 
-
-# Commande par défaut (peut être surchargée par docker-compose)
+# Commande par défaut
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
