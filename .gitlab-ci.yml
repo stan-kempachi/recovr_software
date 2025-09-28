@@ -184,7 +184,6 @@ deploy-staging:
 
     # Copier le .env sur le serveur en supprimant les retours chariot
     - cat .env.staging | tr -d '\r' | ssh $DO_USER@$DO_IP "cat > /home/django/recovr_software/staging/.env.staging"
-    - rm -f .env.staging
 
     # Pull du dépôt GitLab et nettoyage
     - ssh $DO_USER@$DO_IP "
