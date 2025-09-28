@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - ENVIRONMENT=production
+        ENVIRONMENT: production
     env_file:
       - .env.production
     command: >
@@ -20,6 +20,7 @@ services:
       SECRET_KEY: ${PRODUCTION_SECRET_KEY}
       DEBUG: "False"
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      DB_ENGINE: django.db.backends.postgresql
       DB_NAME: ${PRODUCTION_DB_NAME}
       DB_USER: ${PRODUCTION_DB_USER}
       DB_PASSWORD: ${PRODUCTION_DB_PASSWORD}
