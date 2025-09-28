@@ -188,14 +188,21 @@ deploy-staging:
 
     # Pull du code à jour (tu n’as que master, donc origin/master)
     - ssh -o StrictHostKeyChecking=no $DO_USER@$DO_IP "
-        mkdir -p ~/.ssh &&
-        chmod 700 ~/.ssh &&
-        ssh-keyscan -H gitlab.com | tee -a ~/.ssh/known_hosts &&
-        cd /home/django/recovr_software/staging &&
-        git fetch --all &&
-        git reset --hard origin/master &&
+        # S'assurer que le fichier known_hosts est accessible
+        mkdir -p ~/.ssh
+        touch ~/.ssh/known_hosts
+        chmod 600 ~/.ssh/known_hosts
+
+        cd /home/django/recovr_software/staging
+
+        # Ajouter gitlab.com à known_hosts si nécessaire
+        ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts 2>/dev/null
+
+        # Synchroniser avec la branche distante
+        git fetch --all
+        git reset --hard origin/master
         git clean -fdx
-        "
+      "
 
     # Build + migrations + collectstatic + lancement
     - ssh $DO_USER@$DO_IP "
