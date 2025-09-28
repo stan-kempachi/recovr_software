@@ -184,6 +184,7 @@ deploy-staging:
 
     # Copier le .env sur le serveur en supprimant les retours chariot
     - cat .env.staging | tr -d '\r' | ssh $DO_USER@$DO_IP "cat > /home/django/recovr_software/staging/.env.staging"
+    - rm -f .env.staging
 
     # Pull du dépôt GitLab et nettoyage
     - ssh $DO_USER@$DO_IP "
@@ -195,10 +196,10 @@ deploy-staging:
     - ssh $DO_USER@$DO_IP "
         cd /home/django/recovr_software/staging &&
         export DJANGO_SETTINGS_MODULE=config.staging_settings &&
-        docker-compose --env-file .env.staging -f docker_compose.staging.yml build --no-cache web_staging &&
-        docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate --settings=config.staging_settings &&
-        docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput --settings=config.staging_settings &&
-        docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
+        docker-compose --env-file /home/django/recovr_software/staging/.env.staging -f docker_compose.staging.yml build --no-cache web_staging &&
+        docker-compose --env-file /home/django/recovr_software/staging/.env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate --settings=config.staging_settings &&
+        docker-compose --env-file /home/django/recovr_software/staging/.env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput --settings=config.staging_settings &&
+        docker-compose --env-file /home/django/recovr_software/staging/.env.staging -f docker_compose.staging.yml up -d web_staging"
   only:
     - master
 
