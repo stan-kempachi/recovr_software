@@ -187,7 +187,7 @@ deploy-staging:
     - rm -f .env.staging
 
     # Pull du code à jour (tu n’as que master, donc origin/master)
-    - ssh $DO_USER@$DO_IP "
+    - ssh -o StrictHostKeyChecking=no $DO_USER@$DO_IP "
         mkdir -p ~/.ssh &&
         chmod 700 ~/.ssh &&
         ssh-keyscan -H gitlab.com | tee -a ~/.ssh/known_hosts &&
@@ -241,7 +241,7 @@ deploy-production:
     - rm -f .env.production
 
     # Pull du code à jour (master)
-    - ssh $DO_USER@$DO_IP "
+    - ssh -o StrictHostKeyChecking=no $DO_USER@$DO_IP "
         mkdir -p ~/.ssh &&
         chmod 700 ~/.ssh &&
         ssh-keyscan -H gitlab.com | tee -a ~/.ssh/known_hosts &&
