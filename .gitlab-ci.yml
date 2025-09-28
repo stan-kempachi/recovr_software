@@ -255,6 +255,7 @@ deploy-production:
         docker-compose --env-file /home/django/recovr_software/production/.env.production -f docker_compose.production.yml up -d web_production"
   only:
     - master
+  when: manual
 
 # ---------------------------
 # Déploiement Proxy Nginx
