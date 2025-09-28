@@ -207,18 +207,16 @@ deploy-staging:
 # Déploiement Production
 # ---------------------------
 deploy-production:
+  <<: *deploy_job
   stage: deploy-production
-  image: python:3.12
-  before_script:
-    - apt-get update && apt-get install -y openssh-client
   script:
     # Créer les répertoires nécessaires sur le serveur
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production /home/django/recovr_software/logs/nginx"
 
     # Copier les fichiers essentiels
-    - scp docker_compose.production.yml pyproject.toml poetry.lock $DO_USER@$DO_IP:/home/django/recovr_software/production/
+    - scp docker_compose.production.yml pyproject.toml poetry.lock Dockerfile $DO_USER@$DO_IP:/home/django/recovr_software/production/
 
-    # Génération du fichier .env.production localement
+    # Génération du .env production localement et suppression des retours chariot
     - |
       echo "DEBUG=False" > .env.production
       echo "PRODUCTION_SECRET_KEY=$PRODUCTION_SECRET_KEY" >> .env.production
@@ -232,27 +230,25 @@ deploy-production:
       echo "ENVIRONMENT=production" >> .env.production
       echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.production
       echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.production
-
-    # Copier le .env sur le serveur en supprimant les retours chariot
     - cat .env.production | tr -d '\r' | ssh $DO_USER@$DO_IP "cat > /home/django/recovr_software/production/.env.production"
     - rm -f .env.production
 
-    # Mettre à jour le dépôt git sur le serveur et nettoyer
+    # Pull du dépôt GitLab et nettoyage (ne supprime pas .env.production)
     - ssh $DO_USER@$DO_IP "
         cd /home/django/recovr_software/production &&
         git fetch origin &&
-        git reset --hard origin/master &&
-        git clean -fdx
+        git reset --hard origin/master
       "
 
     # Build et lancement des conteneurs production
     - ssh $DO_USER@$DO_IP "
         cd /home/django/recovr_software/production &&
         export DJANGO_SETTINGS_MODULE=config.production_settings &&
-        docker-compose --env-file /home/django/recovr_software/production/.env.production -f docker_compose.production.yml build --no-cache web_production &&
-        docker-compose --env-file /home/django/recovr_software/production/.env.production -f docker_compose.production.yml run --rm web_production python manage.py migrate --settings=config.production_settings &&
-        docker-compose --env-file /home/django/recovr_software/production/.env.production -f docker_compose.production.yml run --rm web_production python manage.py collectstatic --noinput --settings=config.production_settings &&
-        docker-compose --env-file /home/django/recovr_software/production/.env.production -f docker_compose.production.yml up -d web_production"
+        docker-compose --env-file .env.production -f docker_compose.production.yml build --no-cache web_production &&
+        docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py migrate --settings=config.production_settings &&
+        docker-compose --env-file .env.production -f docker_compose.production.yml run --rm web_production python manage.py collectstatic --noinput --settings=config.production_settings &&
+        docker-compose --env-file .env.production -f docker_compose.production.yml up -d web_production
+      "
   only:
     - master
   when: manual
