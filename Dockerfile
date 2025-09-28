@@ -32,9 +32,6 @@ COPY pyproject.toml poetry.lock /app/
 # Installer les dépendances
 RUN poetry install --no-interaction --no-ansi --no-root --no-cache
 
-# Copier le reste du code (plus tard pour préserver le cache des deps)
-COPY . /app/
-
 # Créer les répertoires pour staticfiles et media
 RUN mkdir -p /app/staticfiles /app/media
 
