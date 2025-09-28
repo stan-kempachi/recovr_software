@@ -158,23 +158,16 @@ variables:
 # Déploiement Staging
 # ---------------------------
 deploy-staging:
+  <<: *deploy_job
   stage: deploy-staging
-  image: python:3.12
-  before_script:
-    - apt-get update && apt-get install -y openssh-client
-
   script:
-    # Ajouter la clé SSH du serveur distant dans known_hosts pour éviter Host key verification failed
-    - mkdir -p ~/.ssh
-    - ssh-keyscan -H $DO_IP >> ~/.ssh/known_hosts
-
     # Créer les répertoires nécessaires sur le serveur
     - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging /home/django/recovr_software/logs/nginx"
 
     # Copier les fichiers essentiels
     - scp docker_compose.staging.yml pyproject.toml poetry.lock $DO_USER@$DO_IP:/home/django/recovr_software/staging/
 
-    # Générer le fichier .env.staging localement
+    # Génération du .env staging localement
     - |
       echo "DEBUG=False" > .env.staging
       echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
@@ -193,13 +186,25 @@ deploy-staging:
     - scp .env.staging $DO_USER@$DO_IP:/home/django/recovr_software/staging/.env.staging
     - rm -f .env.staging
 
-    # Mettre à jour le dépôt git sur le serveur
+    # Pull du dépôt GitLab et nettoyage
     - ssh $DO_USER@$DO_IP "
         cd /home/django/recovr_software/staging &&
         git fetch origin &&
         git reset --hard origin/master || git reset --hard origin/main &&
         git clean -fdx
       "
+
+    # Build et lancement des conteneurs
+    - ssh $DO_USER@$DO_IP "
+        cd /home/django/recovr_software/staging &&
+        export DJANGO_SETTINGS_MODULE=config.staging_settings &&
+        docker-compose --env-file .env.staging -f docker_compose.staging.yml build --no-cache web_staging &&
+        docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py migrate --settings=config.staging_settings &&
+        docker-compose --env-file .env.staging -f docker_compose.staging.yml run --rm web_staging python manage.py collectstatic --noinput --settings=config.staging_settings &&
+        docker-compose --env-file .env.staging -f docker_compose.staging.yml up -d web_staging"
+  only:
+    - master
+
 
 # ---------------------------
 # Déploiement Production
