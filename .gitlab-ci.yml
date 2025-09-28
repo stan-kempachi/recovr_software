@@ -188,10 +188,14 @@ deploy-staging:
 
     # Pull du code à jour (tu n’as que master, donc origin/master)
     - ssh $DO_USER@$DO_IP "
-        cd /home/django/recovr_software/staging &&
-        git fetch --all &&
-        git reset --hard origin/master &&
-        git clean -fdx"
+      mkdir -p ~/.ssh &&
+      chmod 700 ~/.ssh &&
+      ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts &&
+      cd /home/django/recovr_software/staging &&
+      git fetch --all &&
+      git reset --hard origin/master &&
+      git clean -fdx
+      "
 
     # Build + migrations + collectstatic + lancement
     - ssh $DO_USER@$DO_IP "
@@ -238,10 +242,14 @@ deploy-production:
 
     # Pull du code à jour (master)
     - ssh $DO_USER@$DO_IP "
+        mkdir -p ~/.ssh &&
+        chmod 700 ~/.ssh &&
+        ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts &&
         cd /home/django/recovr_software/production &&
         git fetch --all &&
         git reset --hard origin/master &&
-        git clean -fdx"
+        git clean -fdx
+        "
 
     # Build + migrations + collectstatic + lancement
     - ssh $DO_USER@$DO_IP "
