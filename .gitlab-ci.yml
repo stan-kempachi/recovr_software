@@ -189,8 +189,7 @@ deploy-staging:
     # Pull du dépôt GitLab et nettoyage
     - ssh $DO_USER@$DO_IP "
         cd /home/django/recovr_software/staging &&
-        git fetch origin &&
-        git reset --hard origin/master || git reset --hard origin/main &&
+        git fetch origin && git reset --hard origin/master && git clean -fdx &&
         git clean -fdx
       "
 
