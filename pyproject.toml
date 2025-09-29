@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "recovr_software"
+name = "core"
 version = "1.4.0"
 description = "Projet généré avec Cookiecutter + Poetry"
 authors = ["Stan Bruyere <adm.standev@gmail.com>"]
-packages = [{ include = "recovr_software", from = "." }]
+packages = [{ include = "core", from = "." }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
