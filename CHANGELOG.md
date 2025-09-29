@@ -14,6 +14,98 @@ All notable changes to this project will be documented in this file. See [standa
 
 <!-- version list -->
 
+## v1.7.0 (2025-09-29)
+
+### Bug Fixes
+
+- Add CSRF_TRUSTED_ORIGINS to settings.py
+  ([`928f80c`](https://gitlab.com/django1361117/recovr_software/-/commit/928f80cec86d5425bdeb0f14ee0a9e73e02cd81b))
+
+### Chores
+
+- Reformat deploy production
+  ([`6caf05c`](https://gitlab.com/django1361117/recovr_software/-/commit/6caf05c785d313dfcf2b2593334c86a7e4eed06e))
+
+- Reformat deploy production
+  ([`3e7bed7`](https://gitlab.com/django1361117/recovr_software/-/commit/3e7bed774ade30b29a7561a62b0b9094d8a1b968))
+
+- Reformat deploy production
+  ([`6a5eec2`](https://gitlab.com/django1361117/recovr_software/-/commit/6a5eec24ee19b07fe8b4097f03fc522eaf3d3e8e))
+
+- Reformat deploy stages
+  ([`23d7942`](https://gitlab.com/django1361117/recovr_software/-/commit/23d7942c63e807b19b25fae4c2d2792a8e340662))
+
+- Reformat deploy stages
+  ([`91ddc13`](https://gitlab.com/django1361117/recovr_software/-/commit/91ddc1310a45a913ecea688b5b58ad584196367c))
+
+- Reformat deploy stages
+  ([`a524fe6`](https://gitlab.com/django1361117/recovr_software/-/commit/a524fe670dd196a1ad7cc614036bb142aa489a05))
+
+- Reformat deploy stages
+  ([`29f8524`](https://gitlab.com/django1361117/recovr_software/-/commit/29f85249a1760bd673194bafffa51a5bda1f868b))
+
+- Reformat deploy stages
+  ([`0a2c4ff`](https://gitlab.com/django1361117/recovr_software/-/commit/0a2c4ff957a72a5b1ebbfe7187700d2bd344a291))
+
+- Reformat deploy stages
+  ([`590a41a`](https://gitlab.com/django1361117/recovr_software/-/commit/590a41a3fff744de0fe86cf48cfc2abf7205aff1))
+
+- Reformat deploy stages
+  ([`62b5e97`](https://gitlab.com/django1361117/recovr_software/-/commit/62b5e973b4e999639485dd11833368f5533954ab))
+
+- Reformat deploy stages
+  ([`9ca5212`](https://gitlab.com/django1361117/recovr_software/-/commit/9ca5212cac60035a9a74732fcd02cc8085aaddfa))
+
+- Reformat deploy stages
+  ([`5aea7f6`](https://gitlab.com/django1361117/recovr_software/-/commit/5aea7f68d45c31034e38116006d68fa15969653c))
+
+- Reformat deploy staging
+  ([`cbeff39`](https://gitlab.com/django1361117/recovr_software/-/commit/cbeff39ae271f0eabb39bc15ac26062d43db271a))
+
+- Uncomment previous stages
+  ([`829822e`](https://gitlab.com/django1361117/recovr_software/-/commit/829822e42ab9ea2e9ee6fb7811e0ca3bb8e6066b))
+
+- Update
+  ([`f2ad0c0`](https://gitlab.com/django1361117/recovr_software/-/commit/f2ad0c02db1fc851215f715997e53519b28dfb97))
+
+- Update
+  ([`bb6cbd4`](https://gitlab.com/django1361117/recovr_software/-/commit/bb6cbd4c54cd8a102466888f9cd22e3c421628bc))
+
+- Update
+  ([`0383a67`](https://gitlab.com/django1361117/recovr_software/-/commit/0383a67bcce3c271f8c1b5eae185a57d5bedc8b8))
+
+- Update
+  ([`becf6b2`](https://gitlab.com/django1361117/recovr_software/-/commit/becf6b2f4b90bef3cc3b882ec6e373816a5d9eef))
+
+- Update
+  ([`550448f`](https://gitlab.com/django1361117/recovr_software/-/commit/550448f87488ac52303a55c52516feeddc97ca1a))
+
+- Update
+  ([`7cdc8f6`](https://gitlab.com/django1361117/recovr_software/-/commit/7cdc8f6176b42546cbba61ab93638c718dc220fc))
+
+- Update
+  ([`efb4a4f`](https://gitlab.com/django1361117/recovr_software/-/commit/efb4a4f20cf82ee5d0165a23011b60a534a23539))
+
+- **ci**: Update deploy jobs to pull latest code on server
+  ([`eec3f0c`](https://gitlab.com/django1361117/recovr_software/-/commit/eec3f0c28d09b4e241eb5278de1f2973ad9414fb))
+
+### Features
+
+- Succes Oauth2 config
+  ([`0282a4b`](https://gitlab.com/django1361117/recovr_software/-/commit/0282a4b849290ea4df3b6408eba2cd98590f1f3f))
+
+- Succes Oauth2 config
+  ([`991f596`](https://gitlab.com/django1361117/recovr_software/-/commit/991f596d70c1c6279b47b67b33b4c95b34931259))
+
+### Refactoring
+
+- Add csrf/ssl to staging config
+  ([`3e1c776`](https://gitlab.com/django1361117/recovr_software/-/commit/3e1c7765d47256b9beae90255196530bc1bf12a0))
+
+- Remove unused app recovr_software
+  ([`37b6dd5`](https://gitlab.com/django1361117/recovr_software/-/commit/37b6dd534df86ba5fe7d2f60c7484348d914df49))
+
+
 ## v1.6.0 (2025-09-27)
 
 ### Chores
