@@ -130,6 +130,8 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 
 # Google OAuth2
 SOCIALACCOUNT_PROVIDERS = {
@@ -140,6 +142,7 @@ SOCIALACCOUNT_PROVIDERS = {
             "client_id": os.getenv("GOOGLE_OAUTH2_CLIENT_ID"),
             "secret": os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET"),
         },
+        "OAUTH_PKCE_ENABLED": True,
     }
 }
 
