@@ -31,12 +31,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Static
 STATIC_ROOT = os.path.join(Path(__file__).resolve().parent.parent, "staticfiles")
 
-# SSL / HTTPS (optionnel selon le proxy)
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-
 # Exceptions pour healthchecks
 SECURE_REDIRECT_EXEMPT = [r"^health/$", r"^nginx-health/$"]
 
 LOGIN_REDIRECT_URL = "/staging/"
+LOGOUT_REDIRECT_URL = "/staging/"
