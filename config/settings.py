@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     "invoices",
     "notifications",
     "reporting",
-    "recovr_software",
     "tests",
     # Dépendances tierces
     "rest_framework",
