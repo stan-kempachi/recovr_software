@@ -21,6 +21,10 @@ class User(AbstractUser):
     notification_app = models.BooleanField(
         _("Notifications dans l'application"), default=True
     )
+    email = models.EmailField(_("Adresse email"), unique=True, max_length=100)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
 
     class Meta:
         verbose_name = _("Utilisateur")
