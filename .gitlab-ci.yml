@@ -182,7 +182,6 @@ deploy-staging:
       echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.staging
       echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.staging
     - cat .env.staging | tr -d '\r' | ssh $DO_USER@$DO_IP "cat > /home/django/recovr_software/staging/.env.staging"
-    - rm -f .env.staging
 
     # Pull du dépôt GitLab et nettoyage (ne supprime pas .env.staging)
     - ssh $DO_USER@$DO_IP "
