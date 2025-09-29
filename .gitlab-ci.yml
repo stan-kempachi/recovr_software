@@ -171,6 +171,7 @@ deploy-staging:
     - |
       echo "DEBUG=False" > .env.staging
       echo "STAGING_SECRET_KEY=$STAGING_SECRET_KEY" >> .env.staging
+      echo "DJANGO_SETTINGS_MODULE=config.staging_settings" >> .env.staging
       echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.staging
       echo "DB_ENGINE=django.db.backends.postgresql" >> .env.staging
       echo "STAGING_DB_NAME=$STAGING_DB_NAME" >> .env.staging
