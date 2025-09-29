@@ -150,3 +150,9 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("GOOGLE_OAUTH2_CLIENT_ID")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("GOOGLE_OAUTH2_CLIENT_SECRET")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ["email", "profile"]
 SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ["first_name", "last_name"]
+
+# Google OAuth2 CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "https://maeshan.com",
+    "https://www.maeshan.com",
+]
