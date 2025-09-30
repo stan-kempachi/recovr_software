@@ -25,16 +25,12 @@ DATABASES = {
     }
 }
 
-# Emails (console pour staging)
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
 # Static
 STATIC_ROOT = os.path.join(Path(__file__).resolve().parent.parent, "staticfiles")
 
-# Exceptions pour healthchecks
-SECURE_REDIRECT_EXEMPT = [r"^health/$", r"^nginx-health/$"]
+# SSL / sécurité
+SESSION_COOKIE_SECURE = True
 
 LOGIN_REDIRECT_URL = "/staging/"
 LOGOUT_REDIRECT_URL = "/staging/"
-
 FORCE_SCRIPT_NAME = "/staging/"
