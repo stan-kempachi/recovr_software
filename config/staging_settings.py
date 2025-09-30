@@ -36,3 +36,5 @@ SECURE_REDIRECT_EXEMPT = [r"^health/$", r"^nginx-health/$"]
 
 LOGIN_REDIRECT_URL = "/staging/"
 LOGOUT_REDIRECT_URL = "/staging/"
+
+FORCE_SCRIPT_NAME = "/staging/"

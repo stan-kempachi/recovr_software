@@ -55,6 +55,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.common.BrokenLinkEmailsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
 
@@ -160,3 +161,9 @@ SESSION_COOKIE_SECURE = True
 
 # SSL / HTTPS (optionnel selon le proxy)
 SECURE_SSL_REDIRECT = True
+
+# Pour que Allauth génère les bons redirect_uri derrière le proxy
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
