@@ -159,9 +159,6 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
-# SSL / HTTPS (optionnel selon le proxy)
-SECURE_SSL_REDIRECT = True
-
 # Pour que Allauth génère les bons redirect_uri derrière le proxy
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
