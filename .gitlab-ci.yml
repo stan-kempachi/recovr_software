@@ -104,6 +104,7 @@ update-changelog:
       fi
 
 
+      
 
 # Synchro Github
 sync-to-github:
@@ -220,6 +221,7 @@ deploy-production:
     - |
       echo "DEBUG=False" > .env.production
       echo "PRODUCTION_SECRET_KEY=$PRODUCTION_SECRET_KEY" >> .env.production
+      echo "DJANGO_SETTINGS_MODULE=config.production_settings" >> .env.staging      
       echo "ALLOWED_HOSTS=$ALLOWED_HOSTS" >> .env.production
       echo "DB_ENGINE=django.db.backends.postgresql" >> .env.production
       echo "PRODUCTION_DB_NAME=$PRODUCTION_DB_NAME" >> .env.production
@@ -231,7 +233,6 @@ deploy-production:
       echo "GOOGLE_OAUTH2_CLIENT_ID=$GOOGLE_OAUTH2_CLIENT_ID" >> .env.production
       echo "GOOGLE_OAUTH2_CLIENT_SECRET=$GOOGLE_OAUTH2_CLIENT_SECRET" >> .env.production
     - cat .env.production | tr -d '\r' | ssh $DO_USER@$DO_IP "cat > /home/django/recovr_software/production/.env.production"
-    - rm -f .env.production
 
     # Pull du dépôt GitLab et nettoyage (ne supprime pas .env.production)
     - ssh $DO_USER@$DO_IP "
@@ -277,7 +278,5 @@ deploy-proxy:
   only:
     - master
   when: manual
-  needs:
-    - deploy-production
   environment:
     name: proxy
