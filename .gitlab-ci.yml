@@ -92,7 +92,7 @@ update-changelog:
       fi
     - echo "Last commit message:" && git log -1 --pretty=%B
     - echo "Recent commits:" && git log --oneline -n 5
-    - semantic-release version --no-push -vv || echo "No version bump needed"
+    - semantic-release version -vv || echo "No version bump needed"
     - |
       if git status --porcelain | grep -q "CHANGELOG.md\|config/__init__.py"; then
         git add CHANGELOG.md config/__init__.py
