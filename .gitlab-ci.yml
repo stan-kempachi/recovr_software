@@ -43,10 +43,18 @@ lint:
     - poetry run isort --check-only .
   allow_failure: false
 
-# Test stage
 test:
   <<: *python_job
   stage: test
+  services:
+    - name: postgres:15
+      alias: postgres
+  variables:
+    POSTGRES_DB: recovr_dev
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: ""
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: 5432
   script:
     - poetry install
     - poetry run pytest
