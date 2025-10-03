@@ -53,6 +53,11 @@ test:
     POSTGRES_PASSWORD: $STAGING_DB_PASSWORD
     POSTGRES_HOST: $STAGING_DB_HOST  # ex: 127.0.0.1 ou IP du serveur
     POSTGRES_PORT: $STAGING_DB_PORT  # normalement 5432
+  before_script:
+    - apt-get update && apt-get install -y postgresql-client
+    - pip install --upgrade pip poetry
+    - poetry config virtualenvs.in-project true
+    - poetry install
   script:
     # recréer la base test pour s'assurer qu'elle est vide
     - psql -h $POSTGRES_HOST -U $POSTGRES_USER -c "DROP DATABASE IF EXISTS test_recovr;"
