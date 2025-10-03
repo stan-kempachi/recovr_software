@@ -47,8 +47,7 @@ test:
   <<: *python_job
   stage: test
   variables:
-    DJANGO_SETTINGS_MODULE: config.settings
-    # Utiliser DB_* au lieu de POSTGRES_*
+    DJANGO_SETTINGS_MODULE: tests.config.settings_test
     DB_NAME: recovr_test
     DB_USER: $STAGING_DB_USER
     DB_PASSWORD: $STAGING_DB_PASSWORD
@@ -63,6 +62,7 @@ test:
     - export PGPASSWORD="$DB_PASSWORD"
     - psql -h $DB_HOST -U $DB_USER -d postgres -c "DROP DATABASE IF EXISTS recovr_test;"
     - psql -h $DB_HOST -U $DB_USER -d postgres -c "CREATE DATABASE recovr_test;"
+    - poetry run python manage.py migrate --settings=tests.config.settings_test
     - poetry run pytest
 
 # Update changelog stage
