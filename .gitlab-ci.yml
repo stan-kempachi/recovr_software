@@ -60,8 +60,9 @@ test:
     - poetry install
   script:
     # recréer la base test pour s'assurer qu'elle est vide
-    - psql -h $POSTGRES_HOST -U $POSTGRES_USER -c "DROP DATABASE IF EXISTS recovr_test;"
-    - psql -h $POSTGRES_HOST -U $POSTGRES_USER -c "CREATE DATABASE recovr_test;"
+    - psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "DROP DATABASE IF EXISTS recovr_test;"
+    - psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "CREATE DATABASE recovr_test;"
+
     - poetry run pytest
 
 
