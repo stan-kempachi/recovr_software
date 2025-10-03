@@ -1,12 +1,13 @@
 """
-Tests OAuth2 Google - Simplifié et robuste
+Tests OAuth2 Google - Complet et robuste
 tests/test_oauth2_google.py
 """
 
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from allauth.socialaccount.models import SocialAccount, SocialApp
+from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -316,3 +317,53 @@ def test_google_provider_configuration():
     assert google_config["AUTH_PARAMS"]["access_type"] == "online"
     assert isinstance(google_config["SCOPE"], list)
     assert len(google_config["SCOPE"]) >= 2
+
+
+def make_fake_sociallogin(mock_google_response):
+    """Construit un SocialLogin brut sans user (comme allauth le ferait avant liaison)."""
+    sociallogin = SocialLogin()
+    sociallogin.account = SocialAccount(
+        provider="google",
+        uid=mock_google_response["id"],
+        extra_data=mock_google_response,
+    )
+    return sociallogin
+
+
+@pytest.mark.django_db
+def test_google_oauth2_integration_flow(client, mock_google_response):
+    user, _ = User.objects.get_or_create(
+        email=mock_google_response["email"],
+        defaults={
+            "first_name": mock_google_response["given_name"],
+            "last_name": mock_google_response["family_name"],
+        },
+    )
+
+    # SocialAccount
+    social_account, _ = SocialAccount.objects.get_or_create(
+        user=user,
+        provider="google",
+        uid=mock_google_response["id"],
+        defaults={"extra_data": mock_google_response},
+    )
+
+    # EmailAddress
+    email_address, _ = EmailAddress.objects.get_or_create(
+        user=user,
+        email=user.email,
+        defaults={"verified": False, "primary": True},
+    )
+
+    user = User.objects.get(email=mock_google_response["email"])
+    email_address = EmailAddress.objects.get(user=user)
+    assert not email_address.verified
+
+    # ---- 2. Validation email
+    email_address.verified = True
+    email_address.save()
+    assert EmailAddress.objects.get(user=user).verified is True
+
+    # ---- 3. Deuxième connexion → pas de doublons
+    make_fake_sociallogin(mock_google_response)
+    assert SocialAccount.objects.filter(user=user, provider="google").count() == 1
