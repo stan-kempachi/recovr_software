@@ -46,16 +46,13 @@ lint:
 test:
   <<: *python_job
   stage: test
-  services:
-    - name: postgres:15
-      alias: postgres
   variables:
     DJANGO_SETTINGS_MODULE: config.settings
-    POSTGRES_DB: recovr_dev
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: ""
-    POSTGRES_HOST: postgres
-    POSTGRES_PORT: 5432
+    POSTGRES_DB: $STAGING_DB_NAME       # la DB "production/staging"
+    POSTGRES_USER: $STAGING_DB_USER
+    POSTGRES_PASSWORD: $STAGING_DB_PASSWORD
+    POSTGRES_HOST: $STAGING_DB_HOST
+    POSTGRES_PORT: $STAGING_DB_PORT
   script:
     - poetry install
     - poetry run pytest
