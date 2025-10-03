@@ -48,21 +48,21 @@ test:
   stage: test
   variables:
     DJANGO_SETTINGS_MODULE: config.settings
-    POSTGRES_DB: recovr_test          # base pour les tests
-    POSTGRES_USER: $STAGING_DB_USER
-    POSTGRES_PASSWORD: $STAGING_DB_PASSWORD
-    POSTGRES_HOST: $STAGING_DB_HOST  # ex: 127.0.0.1 ou IP du serveur
-    POSTGRES_PORT: $STAGING_DB_PORT  # normalement 5432
+    # Utiliser DB_* au lieu de POSTGRES_*
+    DB_NAME: recovr_test
+    DB_USER: $STAGING_DB_USER
+    DB_PASSWORD: $STAGING_DB_PASSWORD
+    DB_HOST: $STAGING_DB_HOST
+    DB_PORT: $STAGING_DB_PORT
   before_script:
     - apt-get update && apt-get install -y postgresql-client
     - pip install --upgrade pip poetry
     - poetry config virtualenvs.in-project true
     - poetry install
   script:
-    # recréer la base test pour s'assurer qu'elle est vide
-    - export PGPASSWORD="$STAGING_DB_PASSWORD"
-    - psql -h $STAGING_DB_HOST -U $STAGING_DB_USER -d postgres -c "DROP DATABASE IF EXISTS recovr_test;"
-    - psql -h $STAGING_DB_HOST -U $STAGING_DB_USER -d postgres -c "CREATE DATABASE recovr_test;"
+    - export PGPASSWORD="$DB_PASSWORD"
+    - psql -h $DB_HOST -U $DB_USER -d postgres -c "DROP DATABASE IF EXISTS recovr_test;"
+    - psql -h $DB_HOST -U $DB_USER -d postgres -c "CREATE DATABASE recovr_test;"
     - poetry run pytest
 
 # Update changelog stage
