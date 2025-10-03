@@ -20,14 +20,13 @@ pyjwt = "^2.10.1"
 cryptography = "^46.0.1"
 django-allauth-ui = "^1.8.1"
 
-
 [tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
 ruff = "*"
 pytest = "*"
 pre-commit = "*"
-
+pytest-django = "^4.11.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -51,3 +50,8 @@ type = "gitlab"
 repository = "django1361117/recovr_software"
 gitlab_url = "https://gitlab.com"
 
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--reuse-db -v"
