@@ -48,14 +48,17 @@ test:
   stage: test
   variables:
     DJANGO_SETTINGS_MODULE: config.settings
-    POSTGRES_DB: test_recovr
+    POSTGRES_DB: test_recovr          # base pour les tests
     POSTGRES_USER: $STAGING_DB_USER
     POSTGRES_PASSWORD: $STAGING_DB_PASSWORD
-    POSTGRES_HOST: $STAGING_DB_HOST  # IP publique ou privée du serveur
-    POSTGRES_PORT: $STAGING_DB_PORT
+    POSTGRES_HOST: $STAGING_DB_HOST  # ex: 127.0.0.1 ou IP du serveur
+    POSTGRES_PORT: $STAGING_DB_PORT  # normalement 5432
   script:
-    - poetry install
+    # recréer la base test pour s'assurer qu'elle est vide
+    - psql -h $POSTGRES_HOST -U $POSTGRES_USER -c "DROP DATABASE IF EXISTS test_recovr;"
+    - psql -h $POSTGRES_HOST -U $POSTGRES_USER -c "CREATE DATABASE test_recovr;"
     - poetry run pytest
+
 
 # Update changelog stage
 update-changelog:
