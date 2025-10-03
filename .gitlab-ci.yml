@@ -60,11 +60,10 @@ test:
     - poetry install
   script:
     # recréer la base test pour s'assurer qu'elle est vide
+    - export PGPASSWORD="$POSTGRES_PASSWORD"
     - psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "DROP DATABASE IF EXISTS recovr_test;"
     - psql -h $POSTGRES_HOST -U $POSTGRES_USER -d postgres -c "CREATE DATABASE recovr_test;"
-
     - poetry run pytest
-
 
 # Update changelog stage
 update-changelog:
