@@ -50,6 +50,7 @@ test:
     - name: postgres:15
       alias: postgres
   variables:
+    DJANGO_SETTINGS_MODULE: config.settings
     POSTGRES_DB: recovr_dev
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: ""
