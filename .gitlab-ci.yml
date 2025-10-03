@@ -48,10 +48,10 @@ test:
   stage: test
   variables:
     DJANGO_SETTINGS_MODULE: config.settings
-    POSTGRES_DB: $STAGING_DB_NAME       # la DB "production/staging"
+    POSTGRES_DB: test_recovr
     POSTGRES_USER: $STAGING_DB_USER
     POSTGRES_PASSWORD: $STAGING_DB_PASSWORD
-    POSTGRES_HOST: $STAGING_DB_HOST
+    POSTGRES_HOST: $STAGING_DB_HOST  # IP publique ou privée du serveur
     POSTGRES_PORT: $STAGING_DB_PORT
   script:
     - poetry install
