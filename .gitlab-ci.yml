@@ -62,7 +62,6 @@ test:
     - export PGPASSWORD="$DB_PASSWORD"
     - psql -h $DB_HOST -U $DB_USER -d postgres -c "DROP DATABASE IF EXISTS recovr_test;"
     - psql -h $DB_HOST -U $DB_USER -d postgres -c "CREATE DATABASE recovr_test;"
-    - poetry run python manage.py migrate --settings=tests.config.settings_test
     - poetry run pytest
 
 # Update changelog stage
