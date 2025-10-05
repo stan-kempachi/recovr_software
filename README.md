@@ -10,7 +10,7 @@ RecovR est une application web SaaS qui permet aux entreprises de :
 - Réduire les délais de paiement et améliorer le recouvrement
 
 [![Pipeline Status](https://gitlab.com/recovr/recovr_software/badges/master/pipeline.svg)](https://gitlab.com/recovr/recovr_software/-/pipelines)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://gitlab.com/recovr/recovr_software/-/tags)
+[![Version](https://img.shields.io/badge/version-1.7.1-blue.svg)](https://gitlab.com/recovr/recovr_software/-/tags)
 
 ## Public cible
 
