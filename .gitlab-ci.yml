@@ -75,7 +75,7 @@ update-changelog:
   variables:
     GITLAB_TOKEN: $CI_JOB_TOKEN
   before_script:
-    - apt-get update && apt-get install -y git openssh-client
+    - apt-get update && apt-get install -y git openssh-client jq
     - eval $(ssh-agent -s)
     - |
       mkdir -p ~/.ssh
@@ -107,16 +107,32 @@ update-changelog:
     - echo "Recent commits:" && git log --oneline -n 5
     - semantic-release version -vv || echo "No version bump needed"
     - |
-      if git status --porcelain | grep -q "CHANGELOG.md\|config/__init__.py"; then
-        git add CHANGELOG.md config/__init__.py
-        git commit -m "docs: update changelog [skip ci]"
+      # Récupérer la nouvelle version depuis config/__init__.py
+      if [ -f "config/__init__.py" ]; then
+        NEW_VERSION=$(grep -oP '__version__ = "\K[^"]+' config/__init__.py)
+        echo "New version detected: $NEW_VERSION"
+        
+        # Mettre à jour le badge de version dans README.md
+        if [ -f "README.md" ]; then
+          sed -i "s/version-[0-9]\+\.[0-9]\+\.[0-9]\+-blue/version-${NEW_VERSION}-blue/g" README.md
+          echo "README.md version badge updated to $NEW_VERSION"
+        fi
+        
+        # Mettre à jour la version dans package.json
+        if [ -f "package.json" ]; then
+          jq ".version = \"${NEW_VERSION}\"" package.json > package.json.tmp && mv package.json.tmp package.json
+          echo "package.json version updated to $NEW_VERSION"
+        fi
+      fi
+    - |
+      if git status --porcelain | grep -q "CHANGELOG.md\|config/__init__.py\|README.md\|package.json"; then
+        git add CHANGELOG.md config/__init__.py README.md package.json
+        git commit -m "docs: update changelog and version files [skip ci]"
         git push origin HEAD:master
-        echo "Changelog updated and pushed"
+        echo "Changelog, README.md and package.json updated and pushed"
       else
         echo "No changelog changes detected"
-      fi
-
-
+      fi   
       
 
 # Synchro Github
