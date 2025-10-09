@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "notifications",
     "reporting",
     "tests",
+    "tasks",
     # Dépendances tierces
     "rest_framework",
     "corsheaders",
@@ -173,3 +174,5 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

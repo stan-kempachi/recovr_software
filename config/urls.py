@@ -5,11 +5,15 @@ from django.urls import include, path
 
 from core import views
 
+app_name = "core"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", views.home, name="home"),  # page d'accueil
+    path("", views.home, name="home"),
     path("health/", views.health_check, name="health"),
-    path("accounts/", include("allauth.urls")),  # ex: /accounts/google/login/
+    path("", include("core.urls", namespace="core")),
+    path("accounts/", include("allauth.urls")),
+    path("tasks/", include("tasks.urls", namespace="tasks")),
 ]
 
 # Servir les fichiers statiques en développement

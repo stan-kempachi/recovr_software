@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Recovr</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Recovr</h1>
+        <nav>
+            <a href="{% url 'account_login' %}">Connexion</a>
+            <a href="{% url 'account_signup' %}">Inscription</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Gérez le pré-recouvrement des factures efficacement</h2>
+        <p>Recovr vous aide à suivre vos tâches, prioriser, et gérer vos factures dans un tableau de bord centralisé.</p>
+        <a href="{% url 'account_signup' %}" class="cta-button">Commencer</a>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2025 TaskFlow. Tous droits réservés.</p>
+    </footer>
+</body>
+</html>

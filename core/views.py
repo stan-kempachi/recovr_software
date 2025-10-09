@@ -2,18 +2,24 @@ import os
 
 from django.conf import settings
 from django.db import connection
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
 
 
 def home(request):
     """
-    Page d'accueil simple de bienvenue
+    Page d'accueil - Redirige vers dashboard si authentifié
     """
-    return HttpResponse("Bienvenue sur Recovr ! Serveur en ligne ✅")
+    if request.user.is_authenticated:
+        return redirect("tasks:task_list")
+
+    return render(request, "core/landing.html")
 
 
 def health_check(request):
-    """Endpoint de santé simple"""
+    """
+    Endpoint de santé simple
+    """
     try:
         # Test basique de la DB
         with connection.cursor() as cursor:
@@ -27,6 +33,7 @@ def health_check(request):
                 "debug": settings.DEBUG,
             }
         )
+
     except Exception as e:
         return JsonResponse(
             {
