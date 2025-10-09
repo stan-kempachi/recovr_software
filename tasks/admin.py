@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from accounts.models import Company
-from invoices.models import Invoice
 from tasks.models import Client
 
 from .models import (
@@ -22,14 +21,6 @@ class CompanyAdmin(admin.ModelAdmin):
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     search_fields = ("name", "email")
-
-
-@admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
-    search_fields = ("number", "client__name")
-
-
-# ----- Inlines pour les relations -----
 
 
 class TaskCommentInline(admin.TabularInline):
