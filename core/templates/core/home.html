@@ -1,0 +1,77 @@
+{% extends "core/base.html" %}
+{% block title %}Accueil - Recovr{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex flex-col items-center justify-center text-center space-y-10">
+
+    <!-- 🔹 En-tête -->
+    <div>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-blue-700 tracking-tight">
+            Bienvenue sur <span class="text-gray-900">Recovr</span>
+        </h1>
+        <p class="mt-3 text-gray-600 text-lg max-w-2xl mx-auto">
+            La solution moderne pour la gestion du <strong>pré-recouvrement</strong> et le suivi intelligent de vos clients.
+        </p>
+    </div>
+
+    <!-- 🔸 Actions principales -->
+    <div class="flex flex-wrap justify-center gap-4">
+        {% if user.is_authenticated %}
+            <a href="{% url 'home' %}" class="bg-blue-600 text-white px-5 py-3 rounded-lg shadow hover:bg-blue-700 transition">
+                🧭 Accéder au tableau de bord
+            </a>
+            <a href="{% url 'tasks:create_task' %}" class="bg-green-600 text-white px-5 py-3 rounded-lg shadow hover:bg-green-700 transition">
+                ➕ Créer une tâche
+            </a>
+        {% else %}
+            <a href="{% url 'account_login' %}" class="bg-blue-600 text-white px-5 py-3 rounded-lg shadow hover:bg-blue-700 transition">
+                🔐 Se connecter
+            </a>
+        {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- 🔹 Section Liste des tâches récentes -->
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 mt-10">
+        <div class="flex justify-between items-center mb-4 border-b pb-3">
+            <h2 class="text-2xl font-semibold text-blue-700">🗂️ Tâches récentes</h2>
+            <a href="{% url 'tasks:task_list' %}" class="text-sm text-blue-600 hover:underline">Voir tout</a>
+        </div>
+        <div id="task-list" class="divide-y divide-gray-100">
+            <p class="text-gray-500 text-sm">Chargement des tâches...</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+async function loadRecentTasks() {
+    const response = await fetch('/api/tasks/?limit=5&sort=urgency');
+    const data = await response.json();
+    const container = document.getElementById('task-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!data.tasks || data.tasks.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 text-sm text-center py-4">Aucune tâche assignée 🎉</p>`;
+        return;
+    }
+
+    data.tasks.forEach(task => {
+        const item = document.createElement('div');
+        item.className = "flex justify-between items-center py-3 hover:bg-gray-50 transition px-2 rounded";
+        item.innerHTML = `
+            <div class="text-left">
+                <a href="/tasks/${task.id}/" class="font-medium text-blue-700 hover:underline">${task.title}</a>
+                <div class="text-xs text-gray-500 mt-1">
+                    📅 ${task.due_date || '—'} • 🔥 ${task.urgency} • 👤 ${task.client || '—'}
+                </div>
+            </div>
+            <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">${task.status}</span>
+        `;
+        container.appendChild(item);
+    });
+}
+document.addEventListener('DOMContentLoaded', loadRecentTasks);
+</script>
+{% endblock %}

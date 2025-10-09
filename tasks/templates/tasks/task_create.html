@@ -1,0 +1,80 @@
+{% extends "core/base.html" %}
+{% block title %}Créer une tâche{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow mt-8">
+    <h1 class="text-2xl font-bold text-blue-700 mb-6">📝 Nouvelle tâche</h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Titre *</label>
+            <input type="text" name="title" required
+                   class="w-full border-gray-300 rounded-md p-2 mt-1 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea name="description" rows="4"
+                      class="w-full border-gray-300 rounded-md p-2 mt-1 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Date d’échéance</label>
+                <input type="date" name="due_date"
+                       class="w-full border-gray-300 rounded-md p-2 mt-1 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Priorité</label>
+                <select name="priority" class="w-full border-gray-300 rounded-md p-2 mt-1 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="3" selected>Normale</option>
+                    <option value="1">Très haute</option>
+                    <option value="2">Haute</option>
+                    <option value="4">Basse</option>
+                    <option value="5">Très basse</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Catégorie</label>
+                <select name="category" class="w-full border-gray-300 rounded-md p-2 mt-1">
+                    <option value="">—</option>
+                    {% for c in categories %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Client</label>
+                <select name="client" class="w-full border-gray-300 rounded-md p-2 mt-1">
+                    <option value="">—</option>
+                    {% for client in clients %}
+                        <option value="{{ client.id }}">{{ client.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Assigner à</label>
+            <select name="assigned_to" class="w-full border-gray-300 rounded-md p-2 mt-1">
+                <option value="">—</option>
+                {% for u in users %}
+                    <option value="{{ u.id }}">{{ u.email }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-4">
+            <a href="{% url 'tasks:task_list' %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">Annuler</a>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Créer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

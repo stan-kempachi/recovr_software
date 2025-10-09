@@ -1,0 +1,96 @@
+{% extends "core/base.html" %}
+{% block title %}Détail Tâche{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8 space-y-6">
+
+    <!-- Bouton retour -->
+    <div class="text-right">
+        <a href="{% url 'tasks:task_list' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Retour à la liste des tâches</a>
+    </div>
+
+    <!-- Titre et statut -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h1 class="text-3xl font-bold mb-2">{{ task.title }}</h1>
+        <p class="text-gray-500">Statut : <span class="font-semibold">{{ task.get_status_display }}</span></p>
+        {% if task.priority %}
+        <p class="text-gray-500">Priorité : <span class="font-semibold">{{ task.priority }}</span></p>
+        {% endif %}
+    </div>
+
+    <!-- Informations générales -->
+    <div class="bg-white p-6 rounded-lg shadow space-y-2">
+        <h2 class="text-xl font-semibold mb-2">Informations générales</h2>
+        <p><strong>Entreprise :</strong> {{ task.company.name|default:"-" }}</p>
+        <p><strong>Client :</strong> {{ task.client.name|default:"-" }}</p>
+        <p><strong>Projet / Catégorie :</strong> {{ task.category.name|default:"-" }}</p>
+        <p><strong>Assigné à :</strong> {{ task.assigned_to.email|default:"-" }}</p>
+        <p><strong>Créé par :</strong> {{ task.created_by.email|default:"-" }}</p>
+        <p><strong>Date de création :</strong> {{ task.created_at|date:"d/m/Y H:i" }}</p>
+        <p><strong>Échéance :</strong> {{ task.due_date|date:"d/m/Y"|default:"-" }}</p>
+        <p><strong>Urgence :</strong> {{ task.urgency_score|default:"-" }}</p>
+        <p><strong>Pièces jointes :</strong>
+            {% if task.attachments.exists %}
+                <ul class="list-disc list-inside">
+                {% for attachment in task.attachments.all %}
+                    <li>
+                        <a href="{{ attachment.file.url }}" class="text-blue-600 hover:underline">{{ attachment.filename }}</a>
+                        ({{ attachment.file_size }} bytes)
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                Aucune
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Description -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Description</h2>
+        <p class="whitespace-pre-line">{{ task.description|default:"Aucune description" }}</p>
+    </div>
+
+    <!-- Commentaires -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Commentaires</h2>
+        {% if task.comments.exists %}
+            <ul class="space-y-2">
+                {% for comment in task.comments.all %}
+                <li class="border-b border-gray-200 pb-2">
+                    <p><strong>{{ comment.user.email }}</strong> <span class="text-gray-500 text-sm">({{ comment.created_at|date:"d/m/Y H:i" }})</span></p>
+                    <p>{{ comment.comment }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-500">Aucun commentaire</p>
+        {% endif %}
+    </div>
+
+    <!-- Historique de statut -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Historique des statuts</h2>
+        {% if task.status_history.exists %}
+            <ul class="space-y-2">
+                {% for h in task.status_history.all %}
+                <li>
+                    <p><strong>{{ h.changed_by.email }}</strong> : {{ h.previous_status }} → {{ h.new_status }} <span class="text-gray-500 text-sm">({{ h.changed_at|date:"d/m/Y H:i" }})</span></p>
+                    {% if h.notes %}
+                        <p>{{ h.notes }}</p>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-500">Aucun historique</p>
+        {% endif %}
+    </div>
+
+    <!-- Bouton retour -->
+    <div class="text-right">
+        <a href="{% url 'tasks:task_list' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Retour à la liste des tâches</a>
+    </div>
+
+</div>
+{% endblock %}

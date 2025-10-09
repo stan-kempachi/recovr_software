@@ -1,0 +1,51 @@
+{% extends "core/home.html" %}
+{% block title %}Tableau de bord - Recovr{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row gap-6">
+
+    <!-- 🔹 Sidebar -->
+    <aside class="md:w-64 bg-white shadow-md rounded-lg p-5">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">Navigation</h2>
+        <nav class="space-y-2">
+            <a href="{% url 'core:home' %}" class="block text-gray-600 hover:text-blue-700">🏠 Tableau de bord</a>
+            <a href="{% url 'tasks:task_list' %}" class="block text-gray-600 hover:text-blue-700">📋 Tâches</a>
+            <a href="{% url 'tasks:create_task' %}" class="block text-gray-600 hover:text-blue-700">➕ Nouvelle tâche</a>
+{#            <a href="{% url 'core:charts' %}" class="block text-gray-600 hover:text-blue-700">📊 Graphiques</a>#}
+        </nav>
+    </aside>
+
+    <!-- 🔸 Contenu principal -->
+    <section class="flex-1 bg-gray-50 p-6 rounded-xl shadow-inner">
+{#        <h1 class="text-3xl font-bold text-gray-800 mb-6">Tableau de bord</h1>#}
+
+        <!-- Bloc pour stats globales -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+{#            <div class="bg-blue-100 text-blue-800 p-4 rounded-lg text-center">#}
+{#                <h3 class="text-sm font-semibold">Tâches totales</h3>#}
+{#                <p class="text-2xl font-bold">{{ stats.total|default:"-" }}</p>#}
+{#            </div>#}
+            <div class="bg-blue-100 text-blue-800 p-4 rounded-lg text-center">
+                <h3 class="text-sm font-semibold">Mes tâches</h3>
+            </div>
+{#            <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg text-center">#}
+{#                <h3 class="text-sm font-semibold">En attente</h3>#}
+{#                <p class="text-2xl font-bold">{{ stats.pending|default:"-" }}</p>#}
+{#            </div>#}
+{#            <div class="bg-green-100 text-green-800 p-4 rounded-lg text-center">#}
+{#                <h3 class="text-sm font-semibold">Terminées</h3>#}
+{#                <p class="text-2xl font-bold">{{ stats.completed|default:"-" }}</p>#}
+{#            </div>#}
+{#            <div class="bg-red-100 text-red-800 p-4 rounded-lg text-center">#}
+{#                <h3 class="text-sm font-semibold">En retard</h3>#}
+{#                <p class="text-2xl font-bold">{{ stats.overdue|default:"-" }}</p>#}
+{#            </div>#}
+        </div>
+
+        <!-- 🔹 Contenu spécifique injecté -->
+        {% block dashboard_content %}
+        <p class="text-gray-400">Bienvenue dans le tableau de bord.</p>
+        {% endblock %}
+    </section>
+</div>
+{% endblock %}
