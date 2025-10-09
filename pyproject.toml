@@ -55,3 +55,11 @@ gitlab_url = "https://gitlab.com"
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 addopts = "--reuse-db -v"
+
+
+[tool.isort]
+profile = "black"
+known_first_party = "accounts,invoices,tasks, reporting, notifications,dashboard, core, config, compliance"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
