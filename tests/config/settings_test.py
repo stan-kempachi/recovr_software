@@ -13,3 +13,5 @@ DATABASES = {
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
+
+SECRET_KEY = "test-secret-key-12345"
