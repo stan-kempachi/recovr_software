@@ -3,7 +3,7 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -299,6 +299,8 @@ def task_edit(request, task_id):
         user.companies.filter(is_primary=True).first() or user.companies.first()
     )
     company = user_company_link.company if user_company_link else task.company
+    if task.company != company:
+        return HttpResponseForbidden("Vous n'avez pas accès à cette tâche.")
 
     categories = TaskCategory.objects.filter(is_active=True)
     clients = Client.objects.filter(company=company)

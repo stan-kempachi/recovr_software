@@ -15,7 +15,12 @@ class User(AbstractUser):
     role = models.CharField(
         _("Rôle"), max_length=10, choices=USER_ROLES, default="user"
     )
-    company = models.CharField(_("Entreprise"), max_length=100, blank=True)
+    company = models.CharField(
+        _("Entreprise"),
+        max_length=100,
+        blank=True,
+        null=True,
+    )
     phone = models.CharField(_("Téléphone"), max_length=20, blank=True)
     notification_email = models.BooleanField(_("Notifications par email"), default=True)
     notification_app = models.BooleanField(
@@ -31,7 +36,19 @@ class User(AbstractUser):
         verbose_name_plural = _("Utilisateurs")
 
     def is_admin(self):
-        return self.role == "admin"
+        return (
+            self.is_staff or self.is_superuser or getattr(self, "role", None) == "admin"
+        )
+
+    @classmethod
+    def create_superuser(cls, **kwargs):
+        """Méthode utilitaire simple pour les tests"""
+        user = cls.objects.create_user(**kwargs)
+        user.is_staff = True
+        user.is_superuser = True
+        user.role = "admin"
+        user.save()
+        return user
 
     def is_readonly(self):
         return self.role == "readonly"
