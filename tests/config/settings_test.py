@@ -2,7 +2,10 @@ import os
 
 from config.settings import *  # noqa: F403
 
-# Database test
+SECRET_KEY = "test-secret-key-12345"
+DEBUG = False
+ALLOWED_HOSTS = ["*"]
+
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
@@ -14,4 +17,8 @@ DATABASES = {
     }
 }
 
-SECRET_KEY = "test-secret-key-12345"
+EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+LOGGING = {"version": 1, "disable_existing_loggers": True}
