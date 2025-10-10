@@ -48,10 +48,7 @@ minor_tags = ["feat"]
 patch_tags = ["fix", "perf"]
 
 [tool.semantic_release.remote]
-type = "gitlab"
-repository = "django1361117/recovr_software"
-gitlab_url = "https://gitlab.com"
-
+type = "git"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
