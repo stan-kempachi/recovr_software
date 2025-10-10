@@ -83,7 +83,7 @@ update-changelog:
     - pip install --upgrade python-semantic-release==10.4.1
     - rm -rf .venv .cache/pypoetry
 
-    # Configuration SSH
+    # Configuration SSH (déjà correcte)
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
     - echo "$CHANGELOG_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
@@ -95,9 +95,10 @@ update-changelog:
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
     - git remote set-url origin "git@gitlab.com:${CI_PROJECT_PATH}.git"
+    - git config --global push.followTags true  # Assure que les tags sont pushés automatiquement
 
     # Synchronisation avec le dépôt distant
-    - git fetch --all
+    - git fetch --all --tags
     - git checkout master
     - git pull origin master --rebase
 
@@ -105,43 +106,54 @@ update-changelog:
     - poetry install --no-cache
   script:
     - |
-      echo "=== Running semantic-release version & changelog ==="
-      # Créer le fichier de configuration pour semantic-release avec la structure remote correcte
-      cat > .semantic-release-conf.yml << EOF
-      branch: master
-      tag_format: '{version}'
-      major_on_zero: true
-      commit_parser: conventional
-      upload_to_repository: true
-      remote:
-        type: gitlab
-        domain: gitlab.com
-        owner: $(echo ${CI_PROJECT_PATH} | cut -d'/' -f1)
-        name: $(echo ${CI_PROJECT_PATH} | cut -d'/' -f2)
-        protocol: ssh
-      build_command: false
-      EOF
+      echo "=== Affichage des remotes git disponibles ==="
+      git remote -v
       
-      # Utiliser la configuration
-      export SEMANTIC_RELEASE_CONFIG=.semantic-release-conf.yml
-      poetry run semantic-release version || echo "No version bump detected"
-      poetry run semantic-release changelog || echo "No changelog update needed"
-    - |
-      echo "=== Committing and pushing changelog if updated ==="
-      git add CHANGELOG.md config/__init__.py README.md package.json || true
-      if ! git diff --cached --quiet; then
-        git commit -m "docs: update changelog and version files [skip ci]" || true
+      # On ne contourne plus la config dans pyproject.toml car elle est maintenant corrigée
+      echo "=== Utilisation de la configuration dans pyproject.toml ==="
+      
+      # Exécution de semantic-release pour analyser les commits
+      echo "=== Analyse des commits pour la mise à jour de version ==="
+      COMMIT_ANALYSIS=$(poetry run semantic-release version --noop --verbose)
+      echo "$COMMIT_ANALYSIS"
+      
+      if echo "$COMMIT_ANALYSIS" | grep -q "Would bump version"; then
+        echo "=== Mise à jour de la version détectée, exécution de semantic-release ==="
+        # Exécution de semantic-release pour obtenir la version et le changelog
+        poetry run semantic-release version
         
-        # Pull avant de push pour éviter les conflits
-        git pull origin master --rebase
+        # Récupérer la nouvelle version depuis __init__.py
+        NEW_VERSION=$(grep -oP '__version__ = "\K[^"]+' config/__init__.py || echo "version-inconnue")
+        echo "Nouvelle version détectée: ${NEW_VERSION}"
         
-        # Puis push
-        git push origin master
-        git push origin --tags
-        echo "Version and changelog automatically pushed."
+        # Vérifier les fichiers modifiés
+        git status
+        
+        # Ajouter tous les fichiers potentiellement modifiés
+        git add CHANGELOG.md config/__init__.py README.md package.json || true
+        
+        # Commit des changements si nécessaire
+        if ! git diff --cached --quiet; then
+          git commit -m "chore: update version to ${NEW_VERSION} [skip ci]"
+          
+          # Vérifier si le tag existe déjà
+          if ! git tag | grep -q "v${NEW_VERSION}"; then
+            # Création du tag pour la version
+            git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+          fi
+          
+          # Push des changements et des tags
+          git push origin master
+          git push origin --tags
+          
+          echo "✅ Version ${NEW_VERSION} et changelog automatiquement mis à jour et publiés."
+        else
+          echo "Aucun changement à committer."
+        fi
       else
-        echo "No changes to commit."
+        echo "🔄 Aucune mise à jour de version nécessaire selon l'analyse des commits."
       fi
+      
 
 ## Synchro Github
 #sync-to-github:
