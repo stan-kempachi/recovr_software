@@ -110,41 +110,73 @@ update-changelog:
       echo "Version actuelle: $CURRENT_VERSION"
       
       echo "=== Exécution de semantic-release ==="
-      # Utilisation de semantic-release publish pour mettre à jour les fichiers
-      poetry run semantic-release version
+      # Utiliser semantic-release uniquement pour déterminer la nouvelle version, pas pour créer la release
+      NEXT_VERSION=$(poetry run semantic-release version --print)
+      echo "Nouvelle version déterminée: $NEXT_VERSION"
       
-      # Vérifier les changements
-      git status
-      
-      NEW_VERSION=$(grep -oP '__version__ = "\K[^"]+' config/__init__.py || echo "0.0.0")
-      echo "Nouvelle version après analyse: $NEW_VERSION"
-      
-      if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
-        echo "Fichiers modifiés:"
-        git diff --name-only
+      if [ "$NEXT_VERSION" != "$CURRENT_VERSION" ]; then
+        echo "Mise à jour de la version dans config/__init__.py"
+        sed -i "s/__version__ = \"$CURRENT_VERSION\"/__version__ = \"$NEXT_VERSION\"/" config/__init__.py
         
-        # Forcer l'ajout des fichiers qui devraient être modifiés
-        echo "Mise à jour manuelle du numéro de version si nécessaire"
-        if [ "$NEW_VERSION" != "$CURRENT_VERSION" ] && [ "$(git diff --name-only | grep -c 'config/__init__.py')" -eq 0 ]; then
-          sed -i "s/__version__ = \"$CURRENT_VERSION\"/__version__ = \"$NEW_VERSION\"/" config/__init__.py
-          echo "Version mise à jour manuellement dans config/__init__.py"
+        echo "Mise à jour du CHANGELOG.md"
+        # Créer/mettre à jour le changelog manuellement
+        DATE=$(date +%Y-%m-%d)
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        if [ -z "$LAST_TAG" ]; then
+          # Pas de tag précédent, utiliser tous les commits
+          LOG_RANGE="HEAD"
+        else
+          # Utiliser les commits depuis le dernier tag
+          LOG_RANGE="${LAST_TAG}..HEAD"
         fi
         
-        # Vérifier si CHANGELOG.md existe, sinon le créer
-        if [ ! -f CHANGELOG.md ]; then
-          echo "# Changelog\n\n## $NEW_VERSION ($(date +%Y-%m-%d))\n\n* feat: success add task manager" > CHANGELOG.md
-          echo "Fichier CHANGELOG.md créé"
+        TEMP_FILE=$(mktemp)
+        if [ -f CHANGELOG.md ]; then
+          cat CHANGELOG.md > $TEMP_FILE
         fi
         
-        git add CHANGELOG.md config/__init__.py
-        git commit -m "chore: update version to ${NEW_VERSION} [skip ci]"
-        git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+        {
+          echo "# Changelog"
+          echo ""
+          echo "## ${NEXT_VERSION} (${DATE})"
+          echo ""
+          
+          # Features
+          FEATURES=$(git log ${LOG_RANGE} --grep="^feat" --pretty=format:"* %s" | sed 's/^feat: //')
+          if [ ! -z "$FEATURES" ]; then
+            echo "### Features"
+            echo "$FEATURES"
+            echo ""
+          fi
+          
+          # Bug Fixes
+          FIXES=$(git log ${LOG_RANGE} --grep="^fix" --pretty=format:"* %s" | sed 's/^fix: //')
+          if [ ! -z "$FIXES" ]; then
+            echo "### Bug Fixes"
+            echo "$FIXES"
+            echo ""
+          fi
+          
+          # Append the rest of the existing changelog if it exists
+          if [ -f CHANGELOG.md ]; then
+            tail -n +3 $TEMP_FILE  # Skip the existing header
+          fi
+        } > CHANGELOG.md
+        
+        git status
+        git add config/__init__.py CHANGELOG.md
+        git diff --cached
+        
+        git commit -m "chore: update version to ${NEXT_VERSION} [skip ci]"
+        git tag -a "v${NEXT_VERSION}" -m "Release version ${NEXT_VERSION}"
         git push origin master
         git push origin --tags
-        echo "Version mise à jour: $CURRENT_VERSION -> $NEW_VERSION"
+        echo "Version mise à jour: $CURRENT_VERSION -> $NEXT_VERSION"
       else
         echo "Aucune mise à jour nécessaire"
       fi
+
 
 # Synchro Github
 sync-to-github:
