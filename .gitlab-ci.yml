@@ -74,46 +74,55 @@ update-changelog:
   only:
     - master
   variables:
-    GITLAB_TOKEN: $CI_JOB_TOKEN
     LOG_LEVEL: INFO
     GIT_DEPTH: 0  # nécessaire pour récupérer tous les commits et tags
+    # Forcer semantic-release à utiliser SSH
+    GIT_CREDENTIALS_CONFIGURED: true
   before_script:
     - apt-get update && apt-get install -y git openssh-client jq curl
     - pip install --upgrade pip
     - pip install poetry
     - pip install --upgrade python-semantic-release==10.4.1
     - rm -rf .venv .cache/pypoetry
+
+    # Configuration SSH
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
     - echo "$CHANGELOG_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
+
+    # Configuration Git
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
+    - git remote set-url origin "git@gitlab.com:${CI_PROJECT_PATH}.git"
     - git fetch --tags origin master
     - git checkout master
-    - git remote set-url origin "git@gitlab.com:${CI_PROJECT_PATH}.git"
+
+    # Installation des dépendances
     - poetry config virtualenvs.in-project true
     - poetry install --no-cache
   script:
     - |
       echo "=== Running semantic-release version & changelog ==="
-      poetry run semantic-release version || echo "No version bump detected"
-      poetry run semantic-release changelog || echo "No changelog update needed"
+      # Utilisation explicite de SSH pour semantic-release
+      export SEMANTIC_RELEASE_REPOSITORY_URL="git@gitlab.com:${CI_PROJECT_PATH}.git"
+      poetry run semantic-release version --repository-url=git@gitlab.com:${CI_PROJECT_PATH}.git || echo "No version bump detected"
+      poetry run semantic-release changelog --repository-url=git@gitlab.com:${CI_PROJECT_PATH}.git || echo "No changelog update needed"
     - |
       echo "=== Committing and pushing changelog if updated ==="
       git add CHANGELOG.md config/__init__.py README.md package.json || true
       if ! git diff --cached --quiet; then
         git commit -m "docs: update changelog and version files [skip ci]" || true
+        # Vérification explicite que nous utilisons SSH
+        git remote -v
         git push origin master
         git push origin --tags
         echo "Version and changelog automatically pushed."
       else
         echo "No changes to commit."
-      fi
-
-
+      fi 
 
 # Synchro Github
 sync-to-github:
