@@ -96,7 +96,7 @@ update-changelog:
     - git config --global user.email "gitlab-ci@example.com"
     - git remote set-url origin "git@gitlab.com:${CI_PROJECT_PATH}.git"
 
-    # Synchronisation complète avec le dépôt distant
+    # Synchronisation avec le dépôt distant
     - git fetch --all
     - git checkout master
     - git pull origin master --rebase
@@ -106,14 +106,19 @@ update-changelog:
   script:
     - |
       echo "=== Running semantic-release version & changelog ==="
-      # Créer le fichier de configuration pour semantic-release
+      # Créer le fichier de configuration pour semantic-release avec la structure remote correcte
       cat > .semantic-release-conf.yml << EOF
       branch: master
       tag_format: '{version}'
       major_on_zero: true
-      commit_parser: semantic_release.commit_parser.emoji_parser
+      commit_parser: conventional
       upload_to_repository: true
-      repository_url: git@gitlab.com:${CI_PROJECT_PATH}.git
+      remote:
+        type: gitlab
+        domain: gitlab.com
+        owner: $(echo ${CI_PROJECT_PATH} | cut -d'/' -f1)
+        name: $(echo ${CI_PROJECT_PATH} | cut -d'/' -f2)
+        protocol: ssh
       build_command: false
       EOF
       
@@ -136,7 +141,7 @@ update-changelog:
         echo "Version and changelog automatically pushed."
       else
         echo "No changes to commit."
-      fi  
+      fi
 
 ## Synchro Github
 #sync-to-github:
