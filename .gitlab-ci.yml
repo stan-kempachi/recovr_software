@@ -77,6 +77,7 @@ update-changelog:
     GITLAB_TOKEN: $CI_JOB_TOKEN
     SEMANTIC_RELEASE_NO_INTERACTION: "true"
     LOG_LEVEL: DEBUG
+    GIT_DEPTH: 0
   before_script:
     - apt-get update && apt-get install -y git openssh-client jq curl
     - pip install --upgrade pip
@@ -96,10 +97,11 @@ update-changelog:
   script:
     - |
       echo "=== Running semantic-release version ==="
-      poetry run semantic-release version || echo "No version bump detected"
+      # On ne recrée pas d'anciennes releases, seulement à partir du dernier tag existant
+      poetry run semantic-release version --skip-build --noop || echo "No version bump detected"
     - |
       echo "=== Running semantic-release changelog ==="
-      poetry run semantic-release changelog
+      poetry run semantic-release changelog --noop || echo "No changelog update needed"
     - |
       echo "=== Committing and pushing changelog ==="
       git add CHANGELOG.md config/__init__.py README.md package.json || true
@@ -107,12 +109,14 @@ update-changelog:
         git commit -m "docs: update changelog and version files [skip ci]" || true
         git push origin master
         git push origin --tags
-        echo "✅ Changelog and version pushed."
+        echo "changelog and version pushed."
       else
         echo "No changes to commit."
       fi
-      
-      
+
+
+
+
 
 # Synchro Github
 sync-to-github:
