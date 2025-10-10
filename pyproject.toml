@@ -39,6 +39,8 @@ branch = "master"
 changelog_file = "CHANGELOG.md"
 upload_to_repository = false
 major_on_zero = false
+tag_format = "v{version}"
+commit_parser = "angular"
 
 [tool.semantic_release.commit_parser_options]
 allowed_tags = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"]
