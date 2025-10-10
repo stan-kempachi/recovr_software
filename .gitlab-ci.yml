@@ -110,23 +110,41 @@ update-changelog:
       echo "Version actuelle: $CURRENT_VERSION"
       
       echo "=== Exécution de semantic-release ==="
-      poetry run semantic-release version --no-push || true
+      # Utilisation de semantic-release publish pour mettre à jour les fichiers
+      poetry run semantic-release version
+      
+      # Vérifier les changements
+      git status
       
       NEW_VERSION=$(grep -oP '__version__ = "\K[^"]+' config/__init__.py || echo "0.0.0")
       echo "Nouvelle version après analyse: $NEW_VERSION"
       
       if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
-        git add CHANGELOG.md config/__init__.py || true
+        echo "Fichiers modifiés:"
+        git diff --name-only
+        
+        # Forcer l'ajout des fichiers qui devraient être modifiés
+        echo "Mise à jour manuelle du numéro de version si nécessaire"
+        if [ "$NEW_VERSION" != "$CURRENT_VERSION" ] && [ "$(git diff --name-only | grep -c 'config/__init__.py')" -eq 0 ]; then
+          sed -i "s/__version__ = \"$CURRENT_VERSION\"/__version__ = \"$NEW_VERSION\"/" config/__init__.py
+          echo "Version mise à jour manuellement dans config/__init__.py"
+        fi
+        
+        # Vérifier si CHANGELOG.md existe, sinon le créer
+        if [ ! -f CHANGELOG.md ]; then
+          echo "# Changelog\n\n## $NEW_VERSION ($(date +%Y-%m-%d))\n\n* feat: success add task manager" > CHANGELOG.md
+          echo "Fichier CHANGELOG.md créé"
+        fi
+        
+        git add CHANGELOG.md config/__init__.py
         git commit -m "chore: update version to ${NEW_VERSION} [skip ci]"
         git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
         git push origin master
         git push origin --tags
-        echo "✅ Version mise à jour: $CURRENT_VERSION -> $NEW_VERSION"
+        echo "Version mise à jour: $CURRENT_VERSION -> $NEW_VERSION"
       else
-        git reset --hard HEAD
-        echo "🔄 Aucune mise à jour nécessaire"
+        echo "Aucune mise à jour nécessaire"
       fi
-
 
 # Synchro Github
 sync-to-github:
