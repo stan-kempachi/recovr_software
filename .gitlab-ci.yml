@@ -43,6 +43,7 @@ lint:
     - poetry run isort --check-only .
   allow_failure: false
 
+# Test stage
 test:
   <<: *python_job
   stage: test
@@ -93,7 +94,7 @@ update-changelog:
   script:
     - |
       echo "=== Running semantic-release version ==="
-      poetry run semantic-release version --no-interaction -v
+      poetry run semantic-release version -v
     - |
       echo "=== Running semantic-release changelog ==="
       poetry run semantic-release changelog -v
