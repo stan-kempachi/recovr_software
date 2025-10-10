@@ -83,7 +83,7 @@ update-changelog:
     - pip install --upgrade python-semantic-release==10.4.1
     - rm -rf .venv .cache/pypoetry
 
-    # Configuration SSH (déjà correcte)
+    # Configuration SSH
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
     - echo "$CHANGELOG_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
@@ -109,18 +109,23 @@ update-changelog:
       echo "=== Affichage des remotes git disponibles ==="
       git remote -v
       
-      # On ne contourne plus la config dans pyproject.toml car elle est maintenant corrigée
+      echo "=== Vérification des derniers commits ==="
+      git log -n 5 --pretty=format:"%h - %an, %ar : %s"
+      
+      echo "=== Vérification des derniers tags ==="
+      git tag -l --sort=-v:refname | head -5
+      
       echo "=== Utilisation de la configuration dans pyproject.toml ==="
       
-      # Exécution de semantic-release pour analyser les commits
+      # On utilise l'option --no-push pour vérifier les changements sans pousser
       echo "=== Analyse des commits pour la mise à jour de version ==="
-      COMMIT_ANALYSIS=$(poetry run semantic-release version --noop --verbose)
+      COMMIT_ANALYSIS=$(poetry run semantic-release version --no-push --verbose)
+      RESULT=$?
       echo "$COMMIT_ANALYSIS"
       
-      if echo "$COMMIT_ANALYSIS" | grep -q "Would bump version"; then
-        echo "=== Mise à jour de la version détectée, exécution de semantic-release ==="
-        # Exécution de semantic-release pour obtenir la version et le changelog
-        poetry run semantic-release version
+      # Si le code de retour est 0, cela signifie qu'une nouvelle version a été créée
+      if [ $RESULT -eq 0 ]; then
+        echo "=== Nouvelle version créée localement ==="
         
         # Récupérer la nouvelle version depuis __init__.py
         NEW_VERSION=$(grep -oP '__version__ = "\K[^"]+' config/__init__.py || echo "version-inconnue")
@@ -132,28 +137,25 @@ update-changelog:
         # Ajouter tous les fichiers potentiellement modifiés
         git add CHANGELOG.md config/__init__.py README.md package.json || true
         
-        # Commit des changements si nécessaire
-        if ! git diff --cached --quiet; then
-          git commit -m "chore: update version to ${NEW_VERSION} [skip ci]"
-          
-          # Vérifier si le tag existe déjà
-          if ! git tag | grep -q "v${NEW_VERSION}"; then
-            # Création du tag pour la version
-            git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
-          fi
-          
-          # Push des changements et des tags
-          git push origin master
-          git push origin --tags
-          
-          echo "✅ Version ${NEW_VERSION} et changelog automatiquement mis à jour et publiés."
-        else
-          echo "Aucun changement à committer."
+        # Commit des changements
+        git commit -m "chore: update version to ${NEW_VERSION} [skip ci]"
+        
+        # Vérifier si le tag existe déjà
+        if ! git tag | grep -q "v${NEW_VERSION}"; then
+          # Création du tag pour la version
+          git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
         fi
+        
+        # Push des changements et des tags
+        git push origin master
+        git push origin --tags
+        
+        echo "✅ Version ${NEW_VERSION} et changelog automatiquement mis à jour et publiés."
       else
+        # Réinitialiser les changements locaux si aucune mise à jour n'est nécessaire
+        git reset --hard HEAD
         echo "🔄 Aucune mise à jour de version nécessaire selon l'analyse des commits."
       fi
-      
 
 ## Synchro Github
 #sync-to-github:
