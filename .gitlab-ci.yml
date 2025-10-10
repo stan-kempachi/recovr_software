@@ -66,26 +66,29 @@ test:
 
 # Update changelog stage
 update-changelog:
-  <<: *python_job
   stage: changelog
+  image: "python:3.12-slim"
+  tags:
+    - self-hosted
   only:
     - master
   variables:
     GITLAB_TOKEN: $CI_JOB_TOKEN
   before_script:
-    - apt-get update && apt-get install -y git openssh-client jq
+    - apt-get update && apt-get install -y git openssh-client jq curl
+    - pip install --upgrade pip
+    - pip install poetry
     - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
     - echo "$CHANGELOG_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
-    # Configuration Git
     - git config --global user.name "GitLab CI"
     - git config --global user.email "gitlab-ci@example.com"
-    # Assurer que nous avons toutes les données Git
     - git fetch --tags origin master
     - git checkout master
+    - poetry config virtualenvs.in-project true
     - poetry install
   script:
     - |
@@ -105,7 +108,7 @@ update-changelog:
       else
         echo "No changes to commit."
       fi
-
+      
       
 
 # Synchro Github
