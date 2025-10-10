@@ -115,21 +115,22 @@ update-changelog:
       echo "=== Vérification des derniers tags ==="
       git tag -l --sort=-v:refname | head -5
       
+      echo "=== Sauvegarde de la version actuelle ==="
+      CURRENT_VERSION=$(grep -oP '__version__ = "\K[^"]+' config/__init__.py || echo "0.0.0")
+      echo "Version actuelle: $CURRENT_VERSION"
+      
       echo "=== Utilisation de la configuration dans pyproject.toml ==="
       
-      # On utilise l'option --no-push pour vérifier les changements sans pousser
-      echo "=== Analyse des commits pour la mise à jour de version ==="
-      COMMIT_ANALYSIS=$(poetry run semantic-release version --no-push --verbose)
-      RESULT=$?
-      echo "$COMMIT_ANALYSIS"
+      # Exécution de semantic-release avec l'option --no-push
+      echo "=== Exécution de semantic-release pour la mise à jour de version ==="
+      poetry run semantic-release version --no-push || true
       
-      # Si le code de retour est 0, cela signifie qu'une nouvelle version a été créée
-      if [ $RESULT -eq 0 ]; then
-        echo "=== Nouvelle version créée localement ==="
-        
-        # Récupérer la nouvelle version depuis __init__.py
-        NEW_VERSION=$(grep -oP '__version__ = "\K[^"]+' config/__init__.py || echo "version-inconnue")
-        echo "Nouvelle version détectée: ${NEW_VERSION}"
+      # Vérification si une nouvelle version a été créée
+      NEW_VERSION=$(grep -oP '__version__ = "\K[^"]+' config/__init__.py || echo "0.0.0")
+      echo "Nouvelle version après analyse: $NEW_VERSION"
+      
+      if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
+        echo "=== Nouvelle version créée: $CURRENT_VERSION -> $NEW_VERSION ==="
         
         # Vérifier les fichiers modifiés
         git status
@@ -137,24 +138,28 @@ update-changelog:
         # Ajouter tous les fichiers potentiellement modifiés
         git add CHANGELOG.md config/__init__.py README.md package.json || true
         
-        # Commit des changements
-        git commit -m "chore: update version to ${NEW_VERSION} [skip ci]"
-        
-        # Vérifier si le tag existe déjà
-        if ! git tag | grep -q "v${NEW_VERSION}"; then
-          # Création du tag pour la version
-          git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+        # Commit des changements si nécessaire
+        if ! git diff --cached --quiet; then
+          git commit -m "chore: update version to ${NEW_VERSION} [skip ci]"
+          
+          # Vérifier si le tag existe déjà
+          if ! git tag | grep -q "v${NEW_VERSION}"; then
+            # Création du tag pour la version
+            git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+          fi
+          
+          # Push des changements et des tags
+          git push origin master
+          git push origin --tags
+          
+          echo "Version ${NEW_VERSION} et changelog automatiquement mis à jour et publiés."
+        else
+          echo "Aucun changement à committer."
         fi
-        
-        # Push des changements et des tags
-        git push origin master
-        git push origin --tags
-        
-        echo "✅ Version ${NEW_VERSION} et changelog automatiquement mis à jour et publiés."
       else
         # Réinitialiser les changements locaux si aucune mise à jour n'est nécessaire
         git reset --hard HEAD
-        echo "🔄 Aucune mise à jour de version nécessaire selon l'analyse des commits."
+        echo "Aucune mise à jour de version nécessaire selon l'analyse des commits."
       fi
 
 ## Synchro Github
