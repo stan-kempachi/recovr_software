@@ -93,13 +93,14 @@ update-changelog:
     - git config --global user.email "gitlab-ci@example.com"
     - git fetch --tags origin master
     - git checkout master
+    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
     - poetry config virtualenvs.in-project true
-    - poetry install
+    - poetry install --no-cache
   script:
     - |
       echo "=== Running semantic-release version & changelog ==="
-      poetry run semantic-release version || echo "ℹ️ No version bump detected"
-      poetry run semantic-release changelog || echo "ℹ️ No changelog update needed"
+      poetry run semantic-release version || echo "No version bump detected"
+      poetry run semantic-release changelog || echo "No changelog update needed"
     - |
       echo "=== Committing and pushing changelog if updated ==="
       git add CHANGELOG.md config/__init__.py README.md package.json || true
@@ -107,7 +108,7 @@ update-changelog:
         git commit -m "docs: update changelog and version files [skip ci]" || true
         git push origin master
         git push origin --tags
-        echo "✅ Version and changelog automatically pushed."
+        echo "Version and changelog automatically pushed."
       else
         echo "No changes to commit."
       fi
