@@ -37,10 +37,10 @@ build-backend = "poetry.core.masonry.api"
 version_variables = ["config/__init__.py:__version__"]
 branch = "master"
 changelog_file = "CHANGELOG.md"
-upload_to_repository = false
-major_on_zero = false
+upload_to_repository = true
+major_on_zero = true
 tag_format = "v{version}"
-commit_parser = "angular"
+commit_parser = "conventional"
 
 [tool.semantic_release.commit_parser_options]
 allowed_tags = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"]
@@ -49,7 +49,10 @@ patch_tags = ["fix", "perf"]
 
 [tool.semantic_release.remote]
 type = "gitlab"
-commit_parser = "conventional"
+domain = "gitlab.com"
+owner = "django1361117"
+name = "recovr_software"
+protocol = "ssh"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
