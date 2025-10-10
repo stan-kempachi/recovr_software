@@ -53,6 +53,7 @@ domain = "gitlab.com"
 owner = "django1361117"
 name = "recovr_software"
 protocol = "ssh"
+remote_name = "origin"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
