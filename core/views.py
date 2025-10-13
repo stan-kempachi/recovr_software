@@ -11,7 +11,7 @@ def home(request):
     Page d'accueil - Redirige vers dashboard si authentifié
     """
     if request.user.is_authenticated:
-        return redirect("tasks:task_list")
+        return redirect("dashboard:dashboard")
 
     return render(request, "core/landing.html")
 

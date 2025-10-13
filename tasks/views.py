@@ -7,7 +7,16 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .models import Client, Task, TaskCategory, TaskComment, TaskStatusHistory
+from invoices.models import Invoice
+
+from .models import (
+    Client,
+    RecurrenceRule,
+    Task,
+    TaskCategory,
+    TaskComment,
+    TaskStatusHistory,
+)
 
 User = get_user_model()
 
@@ -31,13 +40,15 @@ def task_list(request):
         .select_related("client", "category", "assigned_to")
         .prefetch_related(
             "comments__user"
-        )  # ✅ Précharge les commentaires et leurs auteurs
+        )  # Précharge les commentaires et leurs auteurs
     )
 
     # --- Filtres ---
     status_filter = request.GET.get("status", "")
     client_filter = request.GET.get("client", "")
-    sort = request.GET.get("sort", "urgency_score")
+    sort = request.GET.get(
+        "sort", "priority"
+    )  # Modifier la valeur par défaut pour correspondre au comportement
 
     if status_filter:
         tasks = tasks.filter(status=status_filter)
@@ -60,12 +71,17 @@ def task_list(request):
     clients = Client.objects.filter(company=company)
 
     # --- Statistiques ---
+    # Optimisation pour éviter les requêtes multiples en utilisant des annotations et des agrégations
+    # Mais gardons l'approche simple pour l'instant
     total_tasks = tasks.count()
     pending_tasks = tasks.filter(status="pending").count()
     completed_tasks = tasks.filter(status="completed").count()
     overdue_tasks = tasks.filter(
         due_date__lt=timezone.now(), status__in=["pending", "in_progress"]
     ).count()
+
+    # Détermination du template de base en fonction de l'URL
+    base_template = "core/base.html" if request.path == "/tasks/" else "dashboard.html"
 
     context = {
         "tasks": tasks,
@@ -79,6 +95,7 @@ def task_list(request):
             "completed": completed_tasks,
             "overdue": overdue_tasks,
         },
+        "base_template": base_template,
     }
 
     return render(request, "tasks/task_list.html", context)
@@ -137,7 +154,7 @@ def create_or_edit_task(request, task_id=None):
     task = None
     if task_id:
         task = get_object_or_404(Task, id=task_id)
-        # sécurité : vérifier l’accès
+        # sécurité : vérifier l'accès
         user_companies = user.companies.values_list("company_id", flat=True)
         if task.company_id not in user_companies and task.created_by != user:
             return JsonResponse({"error": "Permission denied"}, status=403)
@@ -145,6 +162,8 @@ def create_or_edit_task(request, task_id=None):
     categories = TaskCategory.objects.filter(is_active=True)
     clients = Client.objects.filter(company=company)
     users = [uc.user for uc in company.users.all()]
+    # Récupération des factures disponibles
+    invoices = Invoice.objects.filter(company=company)
 
     if request.method == "POST":
         title = request.POST.get("title")
@@ -154,6 +173,11 @@ def create_or_edit_task(request, task_id=None):
         assigned_to_id = request.POST.get("assigned_to")
         due_date_str = request.POST.get("due_date")
         priority = request.POST.get("priority", 3)
+        invoice_id = request.POST.get("invoice")
+        task_type = request.POST.get("task_type", "manual")
+        status = request.POST.get("status", "pending")
+        is_recurring = request.POST.get("is_recurring") == "on"
+        reminder_date_str = request.POST.get("reminder_date")
 
         category = (
             TaskCategory.objects.filter(id=category_id).first() if category_id else None
@@ -164,6 +188,7 @@ def create_or_edit_task(request, task_id=None):
             if assigned_to_id
             else None
         )
+        invoice = Invoice.objects.filter(id=invoice_id).first() if invoice_id else None
 
         due_date = None
         if due_date_str:
@@ -175,6 +200,39 @@ def create_or_edit_task(request, task_id=None):
             except ValueError:
                 pass
 
+        reminder_date = None
+        if reminder_date_str:
+            try:
+                naive_date = datetime.strptime(reminder_date_str, "%Y-%m-%d")
+                reminder_date = timezone.make_aware(
+                    naive_date, timezone.get_current_timezone()
+                )
+            except ValueError:
+                pass
+
+        # Gestion des règles de récurrence
+        recurrence_frequency = request.POST.get("recurrence_frequency", "monthly")
+        recurrence_interval = int(request.POST.get("recurrence_interval", 1))
+        recurrence_rule = None
+
+        if is_recurring:
+            # Création/mise à jour d'une règle de récurrence
+            if task and hasattr(task, "recurrence_rule") and task.recurrence_rule:
+                recurrence_rule = task.recurrence_rule
+                recurrence_rule.frequency = recurrence_frequency
+                recurrence_rule.interval = recurrence_interval
+                recurrence_rule.save()
+            else:
+                recurrence_rule = RecurrenceRule.objects.create(
+                    frequency=recurrence_frequency, interval=recurrence_interval
+                )
+        elif task and hasattr(task, "recurrence_rule") and task.recurrence_rule:
+            # Suppression de la règle de récurrence si elle existe et que la case n'est plus cochée
+            old_rule = task.recurrence_rule
+            task.recurrence_rule = None
+            task.save()
+            old_rule.delete()
+
         # Création ou mise à jour
         if task:
             task.title = title
@@ -184,6 +242,15 @@ def create_or_edit_task(request, task_id=None):
             task.assigned_to = assigned_to or task.assigned_to
             task.priority = int(priority)
             task.due_date = due_date
+            task.invoice = invoice
+            task.task_type = task_type
+            task.status = status
+            task.is_recurring = is_recurring
+            task.reminder_date = reminder_date
+
+            if is_recurring and recurrence_rule:
+                task.recurrence_rule = recurrence_rule
+
             task.save()
         else:
             task = Task.objects.create(
@@ -196,6 +263,12 @@ def create_or_edit_task(request, task_id=None):
                 assigned_to=assigned_to or user,
                 priority=int(priority),
                 due_date=due_date,
+                invoice=invoice,
+                task_type=task_type,
+                status=status,
+                is_recurring=is_recurring,
+                recurrence_rule=recurrence_rule if is_recurring else None,
+                reminder_date=reminder_date,
             )
 
         return redirect("tasks:task_detail", task_id=task.id)
@@ -205,6 +278,7 @@ def create_or_edit_task(request, task_id=None):
         "categories": categories,
         "clients": clients,
         "users": users,
+        "invoices": invoices,
         "is_edit": bool(task),
     }
     return render(request, "tasks/task_create.html", context)

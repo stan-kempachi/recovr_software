@@ -13,6 +13,7 @@ urlpatterns = [
     path("health/", views.health_check, name="health"),
     path("", include("core.urls", namespace="core")),
     path("accounts/", include("allauth.urls")),
+    path("dashboard/", include("dashboard.urls")),
     path("tasks/", include("tasks.urls", namespace="tasks")),
 ]
 

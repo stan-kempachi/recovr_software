@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="fr">
+<html lang="fr" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Recovr - Pré-recouvrement{% endblock %}</title>
 
     <!-- Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tailwindcss@^3/dist/tailwind.min.css" rel="stylesheet">
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -18,51 +18,51 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-100 font-sans text-gray-900">
+<body class="bg-gray-100 font-sans text-gray-900 flex flex-col min-h-screen">
 
-    <!-- ✅ Barre de navigation -->
-    <nav class="bg-white shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <!-- Logo -->
-            <div class="flex items-center space-x-2">
-                <img src="{% static 'images/logo.svg' %}" alt="Recovr" class="h-8 w-8">
-                <span class="text-xl font-bold text-blue-700">Recovr</span>
-            </div>
-
-            <!-- Liens du menu -->
-            <div class="hidden md:flex space-x-6">
-{#                <a href="{% url 'core:dashboard' %}" class="text-gray-700 hover:text-blue-700 transition">Dashboard</a>#}
-                <a href="{% url 'tasks:task_list' %}" class="text-gray-700 hover:text-blue-700 transition">Tâches</a>
-                <a href="{% url 'core:home' %}" class="text-gray-700 hover:text-blue-700 transition">Accueil</a>
-            </div>
-
-            <!-- Espace utilisateur -->
-            <div class="flex items-center space-x-3">
-                {% if user.is_authenticated %}
-                    <span class="text-sm text-gray-600">👋 Bonjour <strong>{{ user.get_full_name|default:user.username }}</strong></span>
-                    <a href="{% url 'account_logout' %}" class="text-sm text-red-600 hover:text-red-800 font-medium">Se déconnecter</a>
-                {% else %}
-                    <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-800 font-medium">Se connecter</a>
-                {% endif %}
-            </div>
+<!-- ✅ Barre de navigation -->
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <!-- Logo -->
+        <div class="flex items-center space-x-2">
+            <img src="{% static 'images/logo.svg' %}" alt="Recovr" class="h-8 w-8">
+            <span class="text-xl font-bold text-blue-700">Recovr</span>
         </div>
-    </nav>
 
-    <!-- ✅ Contenu principal -->
-    <main class="container mx-auto px-6 py-8">
-        {% block content %}
-
-        {% endblock %}
-    </main>
-
-    <!-- ✅ Pied de page -->
-    <footer class="bg-white shadow-inner mt-12">
-        <div class="container mx-auto px-6 py-4 text-center text-sm text-gray-500">
-            © {{ now|date:"Y" }} Recovr — Gestion du pré-recouvrement.
-            <span class="block md:inline">Propulsé par Django ⚙️</span>
+        <!-- Liens du menu -->
+        <div class="hidden md:flex space-x-6">
+            {#                <a href="{% url 'core:dashboard' %}" class="text-gray-700 hover:text-blue-700 transition">Dashboard</a>#}
+            <a href="{% url 'tasks:task_list' %}" class="text-gray-700 hover:text-blue-700 transition">Tâches</a>
+            <a href="{% url 'core:home' %}" class="text-gray-700 hover:text-blue-700 transition">Accueil</a>
         </div>
-    </footer>
 
-    {% block extra_js %}{% endblock %}
+        <!-- Espace utilisateur -->
+        <div class="flex items-center space-x-3">
+            {% if user.is_authenticated %}
+                <span class="text-sm text-gray-600">👋 Bonjour <strong>{{ user.get_full_name|default:user.username }}</strong></span>
+                <a href="{% url 'account_logout' %}" class="text-sm text-red-600 hover:text-red-800 font-medium">Se déconnecter</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-800 font-medium">Se connecter</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- ✅ Contenu principal -->
+<main class="container mx-auto px-6 py-8 flex-grow">
+    {% block content %}
+
+    {% endblock %}
+</main>
+
+<!-- ✅ Pied de page -->
+<footer class="bg-white shadow-inner mt-auto">
+    <div class="container mx-auto px-6 py-4 text-center text-sm text-gray-500">
+        © {{ now|date:"Y" }} Recovr — Gestion du pré-recouvrement.
+        <span class="block md:inline">Propulsé par Django ⚙️</span>
+    </div>
+</footer>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

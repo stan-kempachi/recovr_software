@@ -14,7 +14,9 @@ urlpatterns = [
     # Actions AJAX
     path("api/tasks/", views.get_tasks, name="get_tasks"),
     path(
-        "<int:task_id>/update-status/", views.task_update_status, name="update_status"
+        "<int:task_id>/update-status/",
+        views.task_update_status,
+        name="task_update_status",
     ),
     path("<int:task_id>/add-comment/", views.task_add_comment, name="add_comment"),
     path("<int:task_id>/assign/", views.task_assign, name="assign"),
