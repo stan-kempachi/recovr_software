@@ -328,3 +328,23 @@ class TaskTemplate(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RecurrenceRule(models.Model):
+    FREQUENCY_CHOICES = [
+        ("daily", "Quotidien"),
+        ("weekly", "Hebdomadaire"),
+        ("monthly", "Mensuel"),
+        ("yearly", "Annuel"),
+    ]
+
+    frequency = models.CharField(
+        max_length=20, choices=FREQUENCY_CHOICES, default="monthly"
+    )
+    interval = models.IntegerField(
+        default=1, help_text="Intervalle entre les occurrences (ex: tous les 2 mois)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Tous les {self.interval} {self.get_frequency_display().lower()}"
