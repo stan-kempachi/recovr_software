@@ -101,13 +101,14 @@ class Invoice(models.Model):
     days_overdue = models.IntegerField(_("Jours de retard"), default=0)
 
     def update_compliance_status(self):
-        """Vérifier si tous les documents requis sont présents et valides"""
-        required_docs = ["FACTURE", "PO", "BL"]  # Liste des types de documents requis
+        """Vérifie si tous les documents requis sont présents"""
+        # Types attendus selon DOC_TYPE_CHOICES
+        required_docs = ["invoice", "po", "bl"]
 
-        # Vérifier si tous les types de documents requis sont présents
-        existing_doc_types = self.invoicedocument_set.values_list(
-            "document_type", flat=True
-        )
+        # Récupère les types existants
+        existing_doc_types = self.documents.values_list("document_type", flat=True)
+
+        # Vérifie que tous les types requis sont présents
         all_required_present = all(
             doc_type in existing_doc_types for doc_type in required_docs
         )

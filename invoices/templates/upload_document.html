@@ -67,7 +67,7 @@
                             <div class="d-flex justify-content-between">
                                 <button type="submit" class="btn btn-primary">Télécharger</button>
                                 {% if invoice %}
-                                    <a href="{% url 'invoice_detail' pk=invoice.id %}" class="btn btn-outline-secondary">Annuler</a>
+                                    <a href="{% url 'invoices:invoice_detail' invoice_id=invoice.id %}" class="btn btn-outline-secondary">Annuler</a>
                                 {% else %}
                                     <a href="{% url 'invoices:api_invoice_list' %}">Retour à la liste</a>
 
