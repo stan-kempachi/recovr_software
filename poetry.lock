@@ -1324,6 +1324,25 @@ docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
 tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
 
 [[package]]
+name = "pypdf2"
+version = "3.0.1"
+description = "A pure-python PDF library capable of splitting, merging, cropping, and transforming PDF files"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "PyPDF2-3.0.1.tar.gz", hash = "sha256:a74408f69ba6271f71b9352ef4ed03dc53a31aa404d29b5d31f53bfecfee1440"},
+    {file = "pypdf2-3.0.1-py3-none-any.whl", hash = "sha256:d16e4205cfee272fbdc0568b68d82be796540b1537508cef59388f839c191928"},
+]
+
+[package.extras]
+crypto = ["PyCryptodome"]
+dev = ["black", "flit", "pip-tools", "pre-commit (<2.18.0)", "pytest-cov", "wheel"]
+docs = ["myst_parser", "sphinx", "sphinx_rtd_theme"]
+full = ["Pillow", "PyCryptodome"]
+image = ["Pillow"]
+
+[[package]]
 name = "pytest"
 version = "8.4.2"
 description = "pytest: simple powerful testing with Python"
@@ -1869,4 +1888,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "325739b81d784949da7c19ffe50121221ab9765cc510270d0f65b8a1e38e2a72"
+content-hash = "c3dec6ce0c33260321f71af100a3be3e51ec694bceb7340da19df9673d9e5efd"

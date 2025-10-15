@@ -10,7 +10,23 @@
 
 {% block content %}
     <div class="container mx-auto px-4 py-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">Tableau de bord</h1>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Tableau de bord</h1>
+
+            <!-- Bouton Upload Rapide -->
+            <div class="quick-upload-container">
+                <button id="quickUploadBtn"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                         fill="currentColor">
+                        <path fill-rule="evenodd"
+                              d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                    Upload Rapide
+                </button>
+            </div>
+        </div>
 
         <!-- Vous pourriez ajouter ici des graphiques et des statistiques -->
         <div class="mb-8">
@@ -32,10 +48,230 @@
         <!-- Liste des tâches -->
         <h2 class="text-xl font-semibold mb-4">Tâches actuelles</h2>
         {% include "tasks/task_list_fragment.html" %}
+
+        <!-- Modal pour l'upload rapide -->
+        <div id="quickUploadModal"
+             class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium">Upload Rapide de Document</h3>
+                    <button id="closeQuickUploadModal" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="icon-close"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor"
+                             role="img"
+                             aria-hidden="false"
+                             title="Fermer">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <form method="post" action="{% url 'invoices:upload_document' %}" enctype="multipart/form-data"
+                      class="space-y-4" id="quickUploadForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="is_quick_upload" value="true">
+                    <input type="hidden" name="source" value="dashboard">
+
+                    <!-- Reste du formulaire -->
+                    <div>
+                        <label for="document_type" class="block text-sm font-medium text-gray-700 mb-1">Type de
+                            document</label>
+                        <select name="document_type" id="document_type"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">Sélectionner un type de document</option>
+                            {% for type in document_types %}
+                                <option value="{{ type.id }}">{{ type.name }}</option>
+
+                            {% endfor %}
+                        </select>
+
+                    </div>
+
+                    <div>
+                        <label for="file" class="block text-sm font-medium text-gray-700 mb-1">Fichier</label>
+                        <input type="file" name="file" id="file" class="w-full" required>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit"
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg">
+                            Télécharger
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 {% endblock %}
 
 {% block extra_js %}
+
     <!-- Script pour les futurs graphiques -->
     <!-- <script src="{% static 'dashboard/js/charts.js' %}"></script> -->
+
+    <!-- Script pour l'upload rapide -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const quickUploadBtn = document.getElementById('quickUploadBtn');
+            const documentTypeSelect = document.getElementById('document_type');
+
+            if (quickUploadBtn) {
+                quickUploadBtn.addEventListener('click', function () {
+                    console.log('Fetching document types...');
+
+                    // Appel API pour récupérer les types de documents
+                    fetch('/invoices/api/document-types/')
+                        .then(response => {
+                            console.log('API Response status:', response.status);
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Document types received:', data);
+
+                            // Vider le select
+                            while (documentTypeSelect.firstChild) {
+                                documentTypeSelect.removeChild(documentTypeSelect.firstChild);
+                            }
+
+                            // Ajouter l'option par défaut
+                            const defaultOption = document.createElement('option');
+                            defaultOption.value = '';
+                            defaultOption.textContent = 'Sélectionner un type de document';
+                            documentTypeSelect.appendChild(defaultOption);
+
+                            // Ajouter les options de type de document
+                            data.forEach(docType => {
+                                console.log('Adding option:', docType);
+                                const option = document.createElement('option');
+                                option.value = docType.id;
+                                option.textContent = docType.name;
+                                documentTypeSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching document types:', error);
+                        });
+                });
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            const quickUploadBtn = document.getElementById('quickUploadBtn');
+            const quickUploadModal = document.getElementById('quickUploadModal');
+            const closeQuickUploadModal = document.getElementById('closeQuickUploadModal');
+            const cancelQuickUpload = document.getElementById('cancelQuickUpload');
+            const fileUpload = document.getElementById('file-upload');
+            const invoiceSelect = document.getElementById('invoice');
+
+            // Ouvrir la modal
+            quickUploadBtn.addEventListener('click', function () {
+                quickUploadModal.classList.remove('hidden');
+                fetchInvoices();
+            });
+
+            // Fermer la modal
+            closeQuickUploadModal.addEventListener('click', function () {
+                quickUploadModal.classList.add('hidden');
+            });
+
+            cancelQuickUpload.addEventListener('click', function () {
+                quickUploadModal.classList.add('hidden');
+            });
+
+            // Fermer la modal si on clique en dehors
+            quickUploadModal.addEventListener('click', function (e) {
+                if (e.target === quickUploadModal) {
+                    quickUploadModal.classList.add('hidden');
+                }
+            });
+
+            // Afficher le nom du fichier sélectionné
+            fileUpload.addEventListener('change', function (e) {
+                const fileName = e.target.files[0].name;
+                const fileLabel = fileUpload.nextElementSibling.querySelector('span');
+                fileLabel.textContent = fileName;
+            });
+
+            // Fonction pour charger les factures via API
+            function fetchInvoices() {
+                // Vider les options actuelles
+                while (invoiceSelect.firstChild) {
+                    invoiceSelect.removeChild(invoiceSelect.firstChild);
+                }
+
+                // Option par défaut
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Sélectionner une facture';
+                invoiceSelect.appendChild(defaultOption);
+
+                // Appel API pour récupérer les factures
+                fetch('invoices/api/invoices/')
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(invoice => {
+                            const option = document.createElement('option');
+                            option.value = invoice.id;
+                            option.textContent = `${invoice.invoice_number} - ${invoice.client.name}`;
+                            invoiceSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors du chargement des factures:', error);
+                    });
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const quickUploadForm = document.querySelector('#quickUploadModal form');
+
+            if (quickUploadForm) {
+                quickUploadForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Fermer le modal
+                                document.getElementById('quickUploadModal').classList.add('hidden');
+
+                                // Afficher un message de succès
+                                const message = document.createElement('div');
+                                message.className = 'bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4';
+                                message.innerHTML = `<p>${data.message}</p>`;
+                                document.querySelector('.container').prepend(message);
+
+                                // Rafraîchir la page après 1.5 secondes
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                // Afficher les erreurs
+                                // ...
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
+            }
+        });
+    </script>
 {% endblock %}

@@ -15,6 +15,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     )
     search_fields = ("invoice_number", "client__name")
     list_filter = ("status", "company", "client")
+    autocomplete_fields = ("currency",)
 
 
 @admin.register(InvoiceDocument)

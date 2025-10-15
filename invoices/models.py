@@ -100,6 +100,22 @@ class Invoice(models.Model):
     is_compliant = models.BooleanField(_("Conforme"), default=False)
     days_overdue = models.IntegerField(_("Jours de retard"), default=0)
 
+    def update_compliance_status(self):
+        """Vérifier si tous les documents requis sont présents et valides"""
+        required_docs = ["FACTURE", "PO", "BL"]  # Liste des types de documents requis
+
+        # Vérifier si tous les types de documents requis sont présents
+        existing_doc_types = self.invoicedocument_set.values_list(
+            "document_type", flat=True
+        )
+        all_required_present = all(
+            doc_type in existing_doc_types for doc_type in required_docs
+        )
+
+        self.is_compliant = all_required_present
+        self.save(update_fields=["is_compliant"])
+        return self.is_compliant
+
     class Meta:
         verbose_name = _("Facture")
         verbose_name_plural = _("Factures")
@@ -122,8 +138,13 @@ class InvoiceDocument(models.Model):
     )
 
     invoice = models.ForeignKey(
-        Invoice, on_delete=models.CASCADE, related_name="documents"
+        Invoice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="documents",
     )
+
     document_type = models.CharField(
         _("Type de document"), max_length=20, choices=DOC_TYPE_CHOICES
     )
