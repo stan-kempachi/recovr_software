@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.10.0 (2025-10-15)
+
+### Features
+* feat: Establishes invoice document management with quick upload & validation.
+
+### Bug Fixes
+* fix changelog stage
+
 All notable changes to this project are documented in this file.
 
 ---
