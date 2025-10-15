@@ -11,7 +11,7 @@ services:
     env_file:
       - .env.production
     command: >
-      bash -c "gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --reload"
+      bash -c "gunicorn config.wsgi:application --bind 0.0.0.0:8001 --access-logfile - --error-logfile - --workers 2 --timeout 120 --reload"
     volumes:
       - static_production:/app/staticfiles
       - media_production:/app/media
