@@ -235,7 +235,7 @@ deploy-staging:
   stage: deploy-staging
   script:
     # Créer les répertoires nécessaires sur le serveur
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging /home/django/recovr_software/logs/nginx"
+    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/staging /home/django/recovr_software/staging/logs/"
 
     # Copier les fichiers essentiels
     - scp docker_compose.staging.yml pyproject.toml poetry.lock Dockerfile $DO_USER@$DO_IP:/home/django/recovr_software/staging/
@@ -284,7 +284,7 @@ deploy-production:
   stage: deploy-production
   script:
     # Créer les répertoires nécessaires sur le serveur
-    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production /home/django/recovr_software/logs/nginx"
+    - ssh $DO_USER@$DO_IP "mkdir -p /home/django/recovr_software/production /home/django/recovr_software/production/logs/"
 
     # Copier les fichiers essentiels
     - scp docker_compose.production.yml pyproject.toml poetry.lock Dockerfile $DO_USER@$DO_IP:/home/django/recovr_software/production/
