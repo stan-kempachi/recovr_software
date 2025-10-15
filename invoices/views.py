@@ -65,13 +65,13 @@ def upload_document(request, invoice_id=None):
 
             # Redirection - si depuis dashboard, retour au dashboard
             if request.POST.get("source") == "dashboard":
-                return redirect("dashboard")
+                return redirect("dashboard:dashboard")
             # Si c'est un upload rapide sans facture associée
             elif is_quick_upload and not document.invoice:
                 return redirect("dashboard")  # Ou une autre vue appropriée
             # Sinon, redirection vers la page de détail de la facture
             elif document.invoice:
-                return redirect("invoice_detail", pk=document.invoice.id)
+                return redirect("invoices:invoice_detail", invoice_id=invoice_id)
             else:
                 return redirect("invoices:document_list")
 
@@ -184,3 +184,17 @@ def document_list(request):
     }
 
     return render(request, "document_list.html", context)
+
+
+def invoice_detail(request, invoice_id):
+    """
+    Affiche les détails d'une facture et ses documents associés.
+    """
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    documents = invoice.documents.all().order_by("document_type")
+
+    context = {
+        "invoice": invoice,
+        "documents": documents,
+    }
+    return render(request, "invoice_detail.html", context)
