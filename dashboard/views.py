@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from accounts.models import Company
-from invoices.models import Invoice
+from invoices.models import Invoice, InvoiceDocument
 from tasks.models import Client, Task
 
 from .models import Dashboard, Widget
@@ -44,10 +44,13 @@ def dashboard_view(request):
     # Données pour les graphiques
     chart_data = get_chart_data(company)
 
-    # Récupérer les tâches (similaire à votre vue task_list)
+    # Récupérer les objects
     tasks = Task.objects.all()
+    invoices = Invoice.objects.all()
+    document_types = InvoiceDocument.objects.all()
 
     context = {
+        "invoices": invoices,
         "dashboard": dashboard,
         "widgets": widgets,
         "kpis": kpis,
@@ -55,6 +58,7 @@ def dashboard_view(request):
         "chart_data": chart_data,
         "tasks": tasks,
         "clients": Client.objects.all(),
+        "document_types": document_types,
     }
 
     return render(request, "dashboard.html", context)

@@ -5,7 +5,7 @@ from django.urls import include, path
 
 from core import views
 
-app_name = "core"
+app_name = "config"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -15,6 +15,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("dashboard/", include("dashboard.urls")),
     path("tasks/", include("tasks.urls", namespace="tasks")),
+    path("invoices/", include("invoices.urls", namespace="invoices")),
 ]
 
 # Servir les fichiers statiques en développement

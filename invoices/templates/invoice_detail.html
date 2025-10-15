@@ -1,0 +1,62 @@
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Documents</h5>
+        <a href="{% url 'upload_document' invoice_id=invoice.id %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-upload"></i> Télécharger un document
+        </a>
+    </div>
+    <div class="card-body">
+        {% if invoice.invoicedocument_set.exists %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Référence</th>
+                        <th>Description</th>
+                        <th>Téléchargé par</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for doc in invoice.invoicedocument_set.all %}
+                        <tr>
+                            <td>
+                            <span class="badge
+                                {% if doc.document_type == 'FACTURE' %}bg-primary
+                                {% elif doc.document_type == 'PO' %}bg-success
+                                {% elif doc.document_type == 'BL' %}bg-info
+                                {% elif doc.document_type == 'PV' %}bg-warning
+                                {% elif doc.document_type == 'CRA' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ doc.get_document_type_display }}
+                            </span>
+                            </td>
+                            <td>{{ doc.reference|default:"-" }}</td>
+                            <td>{{ doc.description|default:"-"|truncatechars:30 }}</td>
+                            <td>{{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.username }}</td>
+                            <td>{{ doc.uploaded_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'download_document' document_id=doc.id %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <a href="{% url 'delete_document' document_id=doc.id %}" class="btn btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                Aucun document n'a été téléchargé pour cette facture.
+                <a href="{% url 'upload_document' invoice_id=invoice.id %}" class="alert-link">Télécharger un document</a>
+            </div>
+        {% endif %}
+    </div>
+</div>

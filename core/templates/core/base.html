@@ -7,7 +7,7 @@
     <title>{% block title %}Recovr - Pré-recouvrement{% endblock %}</title>
 
     <!-- Tailwind CSS -->
-    <link href="https://unpkg.com/tailwindcss@^3/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -25,15 +25,17 @@
     <div class="container mx-auto px-6 py-3 flex justify-between items-center">
         <!-- Logo -->
         <div class="flex items-center space-x-2">
-            <img src="{% static 'images/logo.svg' %}" alt="Recovr" class="h-8 w-8">
+            <link rel="stylesheet" href="{% static 'images/favicon.ico' %}">
+
             <span class="text-xl font-bold text-blue-700">Recovr</span>
         </div>
 
         <!-- Liens du menu -->
         <div class="hidden md:flex space-x-6">
             {#                <a href="{% url 'core:dashboard' %}" class="text-gray-700 hover:text-blue-700 transition">Dashboard</a>#}
-            <a href="{% url 'tasks:task_list' %}" class="text-gray-700 hover:text-blue-700 transition">Tâches</a>
             <a href="{% url 'core:home' %}" class="text-gray-700 hover:text-blue-700 transition">Accueil</a>
+            <a href="{% url 'tasks:task_list' %}" class="text-gray-700 hover:text-blue-700 transition">Tâches</a>
+            <a href="{% url 'invoices:document_list' %}" class="text-gray-700 hover:text-blue-700 transition">Documents</a>
         </div>
 
         <!-- Espace utilisateur -->

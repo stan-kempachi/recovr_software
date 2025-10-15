@@ -401,6 +401,7 @@ def task_edit(request, task_id):
         return redirect("tasks:task_detail", task_id=task.id)
 
     context = {
+        "invoices": Invoice.objects.filter(company=company),
         "task": task,
         "categories": categories,
         "clients": clients,

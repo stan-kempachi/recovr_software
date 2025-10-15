@@ -68,7 +68,7 @@
                     <option value="">—</option>
                     {% for invoice in invoices %}
                         <option value="{{ invoice.id }}" {% if task.invoice and invoice.id == task.invoice.id %}selected{% endif %}>
-                            {{ invoice.number }} - {{ invoice.client.name }} - {{ invoice.total_amount }} €
+                            {{ invoice.invoice_number }} - {{ invoice.client.name }} - {{ invoice.amount_ttc }} €
                         </option>
                     {% endfor %}
                 </select>
