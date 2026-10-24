@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.11.0 (2026-10-24)
+
+### Features
+* feat(deploy): settings Pi pour recovr.stan-aria.dev (login email/mdp, OAuth2 Google optionnel, whitenoise)
+
 ## 1.10.0 (2025-10-15)
 
 ### Features
