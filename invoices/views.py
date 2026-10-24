@@ -110,7 +110,10 @@ def delete_document(request, document_id):
             os.remove(document.file.path)
 
     # Suppression de l'entrée en base de données
+    invoice_obj = document.invoice
     document.delete()
+    if invoice_obj:
+        invoice_obj.update_compliance_status()
 
     # Redirection vers la liste des documents ou la facture associée
     if invoice_id:
@@ -190,11 +193,19 @@ def invoice_detail(request, invoice_id):
     """
     Affiche les détails d'une facture et ses documents associés.
     """
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    from .forms import InvoiceStatusForm
+
+    company_ids = request.user.companies.values_list("company_id", flat=True)
+    invoice = get_object_or_404(Invoice, id=invoice_id, company_id__in=company_ids)
+    invoice.compute_days_overdue()
     documents = invoice.documents.all().order_by("document_type")
 
     context = {
         "invoice": invoice,
         "documents": documents,
+        "missing_documents": invoice.missing_documents(),
+        "status_history": invoice.status_history.select_related("changed_by")[:20],
+        "status_form": InvoiceStatusForm(initial={"status": invoice.status}),
+        "readonly": getattr(request.user, "role", "") == "readonly",
     }
-    return render(request, "invoice_detail.html", context)
+    return render(request, "invoices/invoice_detail.html", context)

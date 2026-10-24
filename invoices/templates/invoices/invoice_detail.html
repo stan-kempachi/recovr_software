@@ -1,0 +1,98 @@
+{% extends "core/base.html" %}
+{% block title %}Facture {{ invoice.invoice_number }} - Recovr{% endblock %}
+{% block content %}
+<div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+    <div>
+        <a href="{% url 'invoices:invoice_list' %}" class="text-sm text-gray-500 hover:underline">← Factures</a>
+        <h1 class="text-2xl font-bold text-gray-800 mt-1">Facture {{ invoice.invoice_number }}</h1>
+        <p class="text-gray-600">{{ invoice.client.name }} · {{ invoice.get_platform_display }}{% if invoice.external_reference %} · réf. {{ invoice.external_reference }}{% endif %}</p>
+    </div>
+    <div class="flex items-center gap-3">
+        {% include "invoices/_status_badge.html" %}
+        {% if invoice.is_overdue %}<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">Retard : {{ invoice.days_overdue }} j</span>{% endif %}
+        {% if not readonly %}<a href="{% url 'invoices:invoice_edit' invoice.id %}" class="text-sm border border-gray-300 bg-white hover:bg-gray-50 px-3 py-1.5 rounded-lg">Modifier</a>{% endif %}
+    </div>
+</div>
+{% include "invoices/_messages.html" %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white shadow sm:rounded-lg p-6">
+            <h2 class="font-semibold text-gray-800 mb-4">Montants et dates</h2>
+            <dl class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div><dt class="text-gray-500">Montant HT</dt><dd class="font-medium">{{ invoice.amount_ht|floatformat:2 }} {{ invoice.currency.symbol }}</dd></div>
+                <div><dt class="text-gray-500">TVA</dt><dd class="font-medium">{{ invoice.vat_amount|floatformat:2 }} {{ invoice.currency.symbol }}</dd></div>
+                <div><dt class="text-gray-500">Montant TTC</dt><dd class="font-semibold text-lg">{{ invoice.amount_ttc|floatformat:2 }} {{ invoice.currency.symbol }}</dd></div>
+                <div><dt class="text-gray-500">Émise le</dt><dd>{{ invoice.issue_date|date:"d/m/Y" }}</dd></div>
+                <div><dt class="text-gray-500">Échéance</dt><dd class="{% if invoice.is_overdue %}text-red-600 font-semibold{% endif %}">{{ invoice.due_date|date:"d/m/Y" }}</dd></div>
+                <div><dt class="text-gray-500">Payée le</dt><dd>{{ invoice.payment_date|date:"d/m/Y"|default:"—" }}</dd></div>
+                {% if invoice.platform_id %}<div><dt class="text-gray-500">ID plateforme</dt><dd>{{ invoice.platform_id }}</dd></div>{% endif %}
+                {% if invoice.payment_method %}<div><dt class="text-gray-500">Paiement</dt><dd>{{ invoice.payment_method }}</dd></div>{% endif %}
+            </dl>
+            {% if invoice.notes %}<p class="mt-4 text-sm text-gray-600 whitespace-pre-line border-t pt-3">{{ invoice.notes }}</p>{% endif %}
+        </div>
+
+        <div class="bg-white shadow sm:rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold text-gray-800">Documents</h2>
+                {% if not readonly %}<a href="{% url 'invoices:upload_document' invoice_id=invoice.id %}" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg">+ Ajouter</a>{% endif %}
+            </div>
+            {% if missing_documents %}
+            <div class="mb-4 rounded-lg bg-orange-50 border border-orange-200 px-4 py-3 text-sm text-orange-800">
+                <strong>Non conforme</strong> — documents manquants : {{ missing_documents|join:", " }}.
+            </div>
+            {% else %}
+            <div class="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">Dossier complet : facture, bon de commande et bon de livraison présents.</div>
+            {% endif %}
+            {% if documents %}
+            <table class="min-w-full text-sm divide-y divide-gray-200">
+                <thead class="text-xs uppercase text-gray-500"><tr><th class="py-2 text-left">Type</th><th class="py-2 text-left">Référence</th><th class="py-2 text-left">Ajouté</th><th class="py-2"></th></tr></thead>
+                <tbody class="divide-y divide-gray-100">
+                {% for doc in documents %}
+                <tr>
+                    <td class="py-2 font-medium">{{ doc.get_document_type_display }}</td>
+                    <td class="py-2 text-gray-600">{{ doc.reference|default:"—" }}{% if doc.description %}<div class="text-xs text-gray-400">{{ doc.description|truncatechars:60 }}</div>{% endif %}</td>
+                    <td class="py-2 text-gray-500 whitespace-nowrap">{{ doc.uploaded_at|date:"d/m/Y" }} · {{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.username|default:"—" }}</td>
+                    <td class="py-2 text-right whitespace-nowrap">
+                        <a href="{% url 'invoices:download_document' document_id=doc.id %}" class="text-blue-600 hover:underline">Télécharger</a>
+                        {% if not readonly %} · <a href="{% url 'invoices:delete_document' document_id=doc.id %}" class="text-red-600 hover:underline" onclick="return confirm('Supprimer ce document ?')">Supprimer</a>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-sm text-gray-500">Aucun document pour cette facture.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        {% if not readonly %}
+        <div class="bg-white shadow sm:rounded-lg p-6">
+            <h2 class="font-semibold text-gray-800 mb-3">Changer le statut</h2>
+            <form method="post" action="{% url 'invoices:invoice_change_status' invoice.id %}" class="space-y-3">
+                {% csrf_token %}
+                {{ status_form.status }}
+                {{ status_form.notes }}
+                <button type="submit" class="w-full bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium py-2 rounded-lg">Appliquer</button>
+            </form>
+        </div>
+        {% endif %}
+        <div class="bg-white shadow sm:rounded-lg p-6">
+            <h2 class="font-semibold text-gray-800 mb-3">Historique</h2>
+            {% if status_history %}
+            <ol class="space-y-3 text-sm">
+                {% for h in status_history %}
+                <li class="border-l-2 border-blue-200 pl-3">
+                    <div class="font-medium">{{ h.get_new_status_display|default:h.new_status }}</div>
+                    <div class="text-xs text-gray-500">{{ h.changed_at|date:"d/m/Y H:i" }}{% if h.changed_by %} · {{ h.changed_by.get_full_name|default:h.changed_by.username }}{% endif %}</div>
+                    {% if h.notes %}<div class="text-xs text-gray-600 mt-1">{{ h.notes }}</div>{% endif %}
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}<p class="text-sm text-gray-500">Aucun changement de statut.</p>{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

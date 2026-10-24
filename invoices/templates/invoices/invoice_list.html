@@ -1,0 +1,108 @@
+{% extends "core/base.html" %}
+{% block title %}Factures - Recovr{% endblock %}
+{% block content %}
+<div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">Factures</h1>
+        <p class="text-sm text-gray-500">{{ total_count }} facture{{ total_count|pluralize }}</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'reporting:export_invoices' %}?format=csv&{{ query_string }}" class="border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium py-2 px-3 rounded-lg">CSV</a>
+        <a href="{% url 'reporting:export_invoices' %}?format=xlsx&{{ query_string }}" class="border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium py-2 px-3 rounded-lg">Excel</a>
+        {% if not readonly %}
+        <a href="{% url 'invoices:invoice_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg">+ Nouvelle facture</a>
+        {% endif %}
+    </div>
+</div>
+{% include "invoices/_messages.html" %}
+
+<form method="get" class="bg-white shadow sm:rounded-lg p-4 mb-4 grid grid-cols-2 md:grid-cols-6 gap-3 text-sm">
+    <input type="text" name="q" value="{{ filters.q }}" placeholder="N°, référence, client…"
+           class="col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+    <select name="status" class="rounded-lg border border-gray-300 px-3 py-2">
+        <option value="">Tous statuts</option>
+        <option value="open" {% if filters.status == 'open' %}selected{% endif %}>En cours (non payées)</option>
+        {% for code, label in status_choices %}
+        <option value="{{ code }}" {% if filters.status == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <select name="client" class="rounded-lg border border-gray-300 px-3 py-2">
+        <option value="">Tous clients</option>
+        {% for c in clients %}
+        <option value="{{ c.id }}" {% if filters.client == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="platform" class="rounded-lg border border-gray-300 px-3 py-2">
+        <option value="">Toutes plateformes</option>
+        {% for code, label in platform_choices %}
+        <option value="{{ code }}" {% if filters.platform == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <div class="flex items-center gap-3">
+        <label class="flex items-center gap-1"><input type="checkbox" name="overdue" value="1" {% if filters.overdue %}checked{% endif %}> En retard</label>
+        <label class="flex items-center gap-1"><input type="checkbox" name="non_compliant" value="1" {% if filters.non_compliant %}checked{% endif %}> Non conformes</label>
+    </div>
+    <div class="col-span-2 md:col-span-6 flex gap-2">
+        <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg">Filtrer</button>
+        <a href="{% url 'invoices:invoice_list' %}" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">Réinitialiser</a>
+    </div>
+</form>
+
+{% if invoices %}
+<div class="bg-white shadow overflow-x-auto sm:rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+            <tr>
+                <th class="px-4 py-3 text-left">N°</th>
+                <th class="px-4 py-3 text-left">Client</th>
+                <th class="px-4 py-3 text-left">Plateforme</th>
+                <th class="px-4 py-3 text-right">TTC</th>
+                <th class="px-4 py-3 text-left">Émise</th>
+                <th class="px-4 py-3 text-left">Échéance</th>
+                <th class="px-4 py-3 text-left">Statut</th>
+                <th class="px-4 py-3 text-center">Conforme</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for invoice in invoices %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium">
+                    <a href="{% url 'invoices:invoice_detail' invoice.id %}" class="text-blue-700 hover:underline">{{ invoice.invoice_number }}</a>
+                    {% if invoice.external_reference %}<div class="text-xs text-gray-400">{{ invoice.external_reference }}</div>{% endif %}
+                </td>
+                <td class="px-4 py-3">{{ invoice.client.name }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ invoice.get_platform_display }}</td>
+                <td class="px-4 py-3 text-right whitespace-nowrap">{{ invoice.amount_ttc|floatformat:2 }} {{ invoice.currency.symbol }}</td>
+                <td class="px-4 py-3 whitespace-nowrap">{{ invoice.issue_date|date:"d/m/Y" }}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    {{ invoice.due_date|date:"d/m/Y" }}
+                    {% if invoice.status != 'paid' and invoice.due_date < today %}
+                        <span class="ml-1 text-xs font-semibold text-red-600">+{{ invoice.days_overdue }} j</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3">{% include "invoices/_status_badge.html" %}</td>
+                <td class="px-4 py-3 text-center">
+                    {% if invoice.is_compliant %}<span class="text-green-600" title="Documents complets">✔</span>
+                    {% else %}<span class="text-orange-500" title="Documents manquants">⚠</span>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page_obj.has_other_pages %}
+<div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+    <span>Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    <div class="flex gap-2">
+        {% if page_obj.has_previous %}<a class="px-3 py-1 border rounded-lg bg-white" href="?{{ query_string }}&page={{ page_obj.previous_page_number }}">Précédent</a>{% endif %}
+        {% if page_obj.has_next %}<a class="px-3 py-1 border rounded-lg bg-white" href="?{{ query_string }}&page={{ page_obj.next_page_number }}">Suivant</a>{% endif %}
+    </div>
+</div>
+{% endif %}
+{% else %}
+<div class="bg-white shadow sm:rounded-lg p-10 text-center text-gray-500">
+    Aucune facture ne correspond.
+    {% if not readonly %}<a href="{% url 'invoices:invoice_create' %}" class="text-blue-600 hover:underline">Créer la première facture</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
