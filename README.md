@@ -108,10 +108,10 @@ poetry run semantic-release version --no-push
 - [x] Exports CSV / Excel
 - [x] Gestion de tâches
 - [ ] Google OAuth2 sur la démo
-- [ ] Envoi des alertes par email (SMTP)
+- [ ] Envoi des alertes par email (SMTP) — [#2](https://github.com/stan-kempachi/recovr_software/issues/2)
 - [ ] Gestion de l'entreprise et des utilisateurs depuis l'interface
-- [ ] Connecteurs Chorus Pro / Ariba (`api_connectors`)
-- [ ] Règles de conformité paramétrables (`compliance`)
+- [ ] Connecteurs Chorus Pro / Ariba (`api_connectors`) — [#1](https://github.com/stan-kempachi/recovr_software/issues/1)
+- [ ] Règles de conformité paramétrables (`compliance`) — [#3](https://github.com/stan-kempachi/recovr_software/issues/3)
 - [ ] Détection d'anomalies (délais inhabituels, doublons, factures incomplètes)
 - [ ] API ouverte pour intégration ERP
 - [ ] Module de relance / recouvrement
