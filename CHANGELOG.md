@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.12.0 (2026-10-24)
+
+### Features
+* feat: gestion des factures et clients, conformité, notifications et exports
+
 ## 1.11.0 (2026-10-24)
 
 ### Features
