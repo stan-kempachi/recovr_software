@@ -1,9 +1,12 @@
 [tool.poetry]
-name = "core"
-version = "1.4.0"
-description = "Projet généré avec Cookiecutter + Poetry"
+name = "recovr"
+version = "1.12.0"
+description = "RecovR — pré-recouvrement : suivi des factures clients, contrôle des pièces justificatives, alertes de retard, exports"
 authors = ["Stan <stan@karakuri.studio>"]
-packages = [{ include = "core", from = "." }]
+license = "Proprietary"
+readme = "README.md"
+repository = "https://github.com/stan-kempachi/recovr_software"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -38,9 +41,10 @@ build-backend = "poetry.core.masonry.api"
 # Configuration de semantic-release
 [tool.semantic_release]
 version_variables = ["config/__init__.py:__version__"]
+version_toml = ["pyproject.toml:tool.poetry.version"]
 branch = "master"
 changelog_file = "CHANGELOG.md"
-upload_to_repository = true
+upload_to_repository = false
 major_on_zero = true
 tag_format = "v{version}"
 commit_parser = "conventional"
@@ -51,17 +55,15 @@ minor_tags = ["feat"]
 patch_tags = ["fix", "perf"]
 
 [tool.semantic_release.remote]
-type = "gitlab"
-domain = "gitlab.com"
-owner = "django1361117"
+type = "github"
+owner = "stan-kempachi"
 name = "recovr_software"
-protocol = "ssh"
-remote_name = "origin"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings"
-python_files = ["tests.py", "test_*.py", "*_tests.py"]
-addopts = "--reuse-db -v"
+DJANGO_SETTINGS_MODULE = "tests.config.settings_test"
+python_files = ["test_*.py", "*_tests.py"]
+testpaths = ["tests"]
+addopts = "--reuse-db"
 
 
 [tool.isort]

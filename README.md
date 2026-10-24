@@ -1,5 +1,8 @@
 # RecovR
 
+[![CI](https://github.com/stan-kempachi/recovr_software/actions/workflows/ci.yml/badge.svg)](https://github.com/stan-kempachi/recovr_software/actions/workflows/ci.yml)
+![Django 4.2](https://img.shields.io/badge/django-4.2-0C4B33) ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
+
 Application web de pré-recouvrement : suivi des factures clients, contrôle des pièces justificatives avant dépôt, alertes de retard et exports. Les connecteurs vers les plateformes de facturation (Chorus Pro, Ariba) sont la prochaine étape de la feuille de route.
 
 **Démo** : https://recovr.stan-aria.dev (compte sur demande)
@@ -8,6 +11,10 @@ RecovR permet à une entreprise de :
 - vérifier que le processus de facturation client est respecté avant dépôt (PO, BL, PV, CRA…) ;
 - centraliser le suivi des statuts de factures sur plusieurs plateformes ;
 - réduire les délais de paiement et améliorer le recouvrement.
+
+![Liste des factures](docs/images/factures.png)
+
+![Détail d'une facture : conformité, statut, historique](docs/images/facture-detail.png)
 
 ## Stack
 
@@ -61,7 +68,7 @@ poetry run pytest
 poetry run pre-commit run --all-files
 ```
 
-> Les tests utilisent `tests/config/settings_test.py` (base `recovr_test`). En CI, lancer `pytest --create-db --no-migrations` pour créer le schéma directement depuis les modèles.
+> Les tests utilisent `tests/config/settings_test.py` (PostgreSQL `recovr_test` par défaut). Pour les lancer sans PostgreSQL : `DB_ENGINE=django.db.backends.sqlite3 DB_NAME=:memory: poetry run pytest --create-db --no-migrations`. La CI GitHub Actions (`.github/workflows/ci.yml`) exécute black / ruff / isort puis les 84 tests sur PostgreSQL 16.
 
 ## Fichiers de settings
 
@@ -69,7 +76,6 @@ poetry run pre-commit run --all-files
 |---|---|
 | `config/settings.py` | Base commune (lit `.env` via python-dotenv) |
 | `config/pi_settings.py` | Déploiement de la démo : `DEBUG=False`, whitenoise, Google OAuth2 optionnel, hôte via `PUBLIC_HOST` |
-| `config/staging_settings.py` / `config/production_settings.py` | Anciens déploiements Docker (DigitalOcean) — conservés pour référence |
 | `tests/config/settings_test.py` | Tests |
 
 Variables d'environnement principales : `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `DB_ENGINE`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `PUBLIC_HOST`, `GOOGLE_OAUTH2_CLIENT_ID`, `GOOGLE_OAUTH2_CLIENT_SECRET`.
@@ -78,7 +84,6 @@ Variables d'environnement principales : `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, 
 
 L'application se déploie comme n'importe quel projet Django : variables d'environnement (voir ci-dessus), `migrate`, `collectstatic`, puis gunicorn derrière un reverse proxy TLS. `config/pi_settings.py` est l'exemple utilisé pour la démo (whitenoise pour les statiques, Google OAuth2 optionnel). Endpoint de santé : `GET /health/`. Un timer système lance `manage.py invoices_check` chaque matin.
 
-Les fichiers `Dockerfile`, `docker_compose.*.yml` et `.gitlab-ci.yml` correspondent à l'ancien déploiement conteneurisé et ne sont plus utilisés tels quels.
 
 ## Conventions de commit
 
@@ -114,4 +119,4 @@ poetry run semantic-release version --no-push
 
 ## Licence
 
-Code source publié à titre de portfolio. Tous droits réservés — Karakuri Studio.
+Code source publié à titre de portfolio. Tous droits réservés — voir [`LICENSE`](LICENSE).

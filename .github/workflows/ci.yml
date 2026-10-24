@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pipx install poetry
+      - run: poetry install --no-interaction
+      - run: poetry run black --check .
+      - run: poetry run ruff check .
+      - run: poetry run isort --check-only .
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: recovr_test
+          POSTGRES_USER: recovr
+          POSTGRES_PASSWORD: recovr
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U recovr"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DJANGO_SETTINGS_MODULE: tests.config.settings_test
+      SECRET_KEY: ci-only-secret-key
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: recovr_test
+      DB_USER: recovr
+      DB_PASSWORD: recovr
+      DB_HOST: localhost
+      DB_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pipx install poetry
+      - run: poetry install --no-interaction
+      - run: poetry run pytest -q --create-db --no-migrations
