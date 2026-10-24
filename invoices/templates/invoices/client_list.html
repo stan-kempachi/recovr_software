@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}
+{% block title %}Clients - Recovr{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Clients</h1>
+    {% if not readonly %}<a href="{% url 'invoices:client_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg">+ Nouveau client</a>{% endif %}
+</div>
+{% include "invoices/_messages.html" %}
+{% if clients %}
+<div class="bg-white shadow overflow-x-auto sm:rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+            <tr><th class="px-4 py-3 text-left">Nom</th><th class="px-4 py-3 text-left">SIRET/SIREN</th><th class="px-4 py-3 text-left">Contact</th><th class="px-4 py-3 text-left">Ville</th><th class="px-4 py-3 text-right">Factures</th><th class="px-4 py-3"></th></tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for c in clients %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium">{{ c.name }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ c.identifier }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ c.contact_name|default:"—" }}{% if c.contact_email %}<div class="text-xs text-gray-400">{{ c.contact_email }}</div>{% endif %}</td>
+                <td class="px-4 py-3 text-gray-600">{{ c.postal_code }} {{ c.city }}</td>
+                <td class="px-4 py-3 text-right"><a class="text-blue-700 hover:underline" href="{% url 'invoices:invoice_list' %}?client={{ c.id }}">{{ c.invoices.count }}</a></td>
+                <td class="px-4 py-3 text-right">{% if not readonly %}<a href="{% url 'invoices:client_edit' c.id %}" class="text-blue-600 hover:underline">Modifier</a>{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-white shadow sm:rounded-lg p-10 text-center text-gray-500">Aucun client. {% if not readonly %}<a href="{% url 'invoices:client_create' %}" class="text-blue-600 hover:underline">Créer le premier client</a>{% endif %}</div>
+{% endif %}
+{% endblock %}

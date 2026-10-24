@@ -16,6 +16,8 @@ urlpatterns = [
     path("dashboard/", include("dashboard.urls")),
     path("tasks/", include("tasks.urls", namespace="tasks")),
     path("invoices/", include("invoices.urls", namespace="invoices")),
+    path("reporting/", include("reporting.urls", namespace="reporting")),
+    path("notifications/", include("notifications.urls", namespace="notifications")),
 ]
 
 # Servir les fichiers statiques en développement

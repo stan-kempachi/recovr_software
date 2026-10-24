@@ -1,0 +1,52 @@
+{% extends "core/base.html" %}
+{% block title %}{{ title }} - Recovr{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">{{ title }}</h1>
+        <a href="{% if invoice %}{% url 'invoices:invoice_detail' invoice.id %}{% else %}{% url 'invoices:invoice_list' %}{% endif %}" class="text-sm text-gray-600 hover:underline">← Retour</a>
+    </div>
+    {% include "invoices/_messages.html" %}
+    {% if not form.fields.client.queryset.exists %}
+    <div class="mb-4 rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
+        Aucun client enregistré. <a href="{% url 'invoices:client_create' %}?next=invoice" class="font-medium underline">Créer un client</a> d'abord.
+    </div>
+    {% endif %}
+    <form method="post" class="bg-white shadow sm:rounded-lg p-6 space-y-5">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="text-sm text-red-600">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% include "invoices/_form_field.html" with field=form.client %}
+            {% include "invoices/_form_field.html" with field=form.invoice_number %}
+            {% include "invoices/_form_field.html" with field=form.platform %}
+            {% include "invoices/_form_field.html" with field=form.platform_id %}
+            {% include "invoices/_form_field.html" with field=form.external_reference extra_class="md:col-span-2" %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {% include "invoices/_form_field.html" with field=form.amount_ht %}
+            {% include "invoices/_form_field.html" with field=form.vat_amount %}
+            {% include "invoices/_form_field.html" with field=form.amount_ttc %}
+            {% include "invoices/_form_field.html" with field=form.currency %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {% include "invoices/_form_field.html" with field=form.issue_date %}
+            {% include "invoices/_form_field.html" with field=form.due_date %}
+            {% include "invoices/_form_field.html" with field=form.payment_method %}
+        </div>
+        {% include "invoices/_form_field.html" with field=form.notes %}
+        <div class="flex justify-end gap-3 pt-2">
+            <a href="{% url 'invoices:invoice_list' %}" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm">Annuler</a>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Enregistrer</button>
+        </div>
+    </form>
+</div>
+<script>
+// Auto-calcul TTC/TVA : TVA = TTC - HT si la TVA est vide ; TTC = HT * 1.2 si TTC vide
+(function () {
+  const ht = document.getElementById('id_amount_ht'), tva = document.getElementById('id_vat_amount'), ttc = document.getElementById('id_amount_ttc');
+  if (!ht || !tva || !ttc) return;
+  ht.addEventListener('change', () => { if (ht.value && !ttc.value) { ttc.value = (parseFloat(ht.value) * 1.2).toFixed(2); tva.value = (parseFloat(ttc.value) - parseFloat(ht.value)).toFixed(2); } });
+  ttc.addEventListener('change', () => { if (ht.value && ttc.value) tva.value = (parseFloat(ttc.value) - parseFloat(ht.value)).toFixed(2); });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+{% block title %}{{ title }} - Recovr{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">{{ title }}</h1>
+        <a href="{% url 'invoices:client_list' %}" class="text-sm text-gray-600 hover:underline">← Clients</a>
+    </div>
+    {% include "invoices/_messages.html" %}
+    <form method="post" class="bg-white shadow sm:rounded-lg p-6 space-y-5">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="text-sm text-red-600">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% include "invoices/_form_field.html" with field=form.name %}
+            {% include "invoices/_form_field.html" with field=form.identifier %}
+            {% include "invoices/_form_field.html" with field=form.contact_name %}
+            {% include "invoices/_form_field.html" with field=form.contact_email %}
+            {% include "invoices/_form_field.html" with field=form.contact_phone %}
+        </div>
+        {% include "invoices/_form_field.html" with field=form.address %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {% include "invoices/_form_field.html" with field=form.postal_code %}
+            {% include "invoices/_form_field.html" with field=form.city %}
+            {% include "invoices/_form_field.html" with field=form.country %}
+        </div>
+        {% include "invoices/_form_field.html" with field=form.notes %}
+        <div class="flex justify-end gap-3 pt-2">
+            <a href="{% url 'invoices:client_list' %}" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm">Annuler</a>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Enregistrer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

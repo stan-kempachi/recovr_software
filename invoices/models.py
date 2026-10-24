@@ -100,22 +100,67 @@ class Invoice(models.Model):
     is_compliant = models.BooleanField(_("Conforme"), default=False)
     days_overdue = models.IntegerField(_("Jours de retard"), default=0)
 
+    REQUIRED_DOCUMENT_TYPES = ("invoice", "po", "bl")
+    OPEN_STATUSES = ("submitted", "accepted", "disputed", "partially_paid")
+
+    def missing_documents(self):
+        """Liste des types de documents requis absents (libellés lisibles)."""
+        existing = set(self.documents.values_list("document_type", flat=True))
+        labels = dict(InvoiceDocument.DOC_TYPE_CHOICES)
+        return [
+            str(labels[code])
+            for code in self.REQUIRED_DOCUMENT_TYPES
+            if code not in existing
+        ]
+
     def update_compliance_status(self):
         """Vérifie si tous les documents requis sont présents"""
-        # Types attendus selon DOC_TYPE_CHOICES
-        required_docs = ["invoice", "po", "bl"]
-
-        # Récupère les types existants
-        existing_doc_types = self.documents.values_list("document_type", flat=True)
-
-        # Vérifie que tous les types requis sont présents
-        all_required_present = all(
-            doc_type in existing_doc_types for doc_type in required_docs
-        )
-
-        self.is_compliant = all_required_present
+        self.is_compliant = not self.missing_documents()
         self.save(update_fields=["is_compliant"])
         return self.is_compliant
+
+    def compute_days_overdue(self, today=None):
+        """Jours de retard : échéance dépassée et facture non payée."""
+        from django.utils import timezone
+
+        today = today or timezone.localdate()
+        if self.status == "paid" or self.due_date >= today:
+            days = 0
+        else:
+            days = (today - self.due_date).days
+        if days != self.days_overdue:
+            self.days_overdue = days
+            self.save(update_fields=["days_overdue"])
+        return days
+
+    @property
+    def is_overdue(self):
+        return self.days_overdue > 0
+
+    def change_status(self, new_status, user=None, notes=""):
+        """Change le statut en traçant l'historique ; renseigne payment_date si payée."""
+        from django.utils import timezone
+
+        if new_status == self.status:
+            return False
+        previous = self.status
+        self.status = new_status
+        update_fields = ["status", "updated_at"]
+        if new_status == "paid":
+            if not self.payment_date:
+                self.payment_date = timezone.localdate()
+                update_fields.append("payment_date")
+            self.days_overdue = 0
+            update_fields.append("days_overdue")
+        self.save(update_fields=update_fields)
+        InvoiceStatusHistory.objects.create(
+            invoice=self,
+            previous_status=previous,
+            new_status=new_status,
+            changed_by=user,
+            notes=notes,
+        )
+        return True
 
     class Meta:
         verbose_name = _("Facture")

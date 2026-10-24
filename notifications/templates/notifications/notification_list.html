@@ -1,0 +1,43 @@
+{% extends "core/base.html" %}
+{% block title %}Notifications - Recovr{% endblock %}
+{% block content %}
+<div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Notifications</h1>
+    <div class="flex items-center gap-2 text-sm">
+        {% if unread_only %}<a href="{% url 'notifications:notification_list' %}" class="px-3 py-1.5 border rounded-lg bg-white">Toutes</a>
+        {% else %}<a href="?unread=1" class="px-3 py-1.5 border rounded-lg bg-white">Non lues</a>{% endif %}
+        <form method="post" action="{% url 'notifications:mark_all_read' %}">{% csrf_token %}
+            <button class="px-3 py-1.5 rounded-lg bg-gray-800 text-white hover:bg-gray-900">Tout marquer lu</button>
+        </form>
+    </div>
+</div>
+{% if notifications %}
+<ul class="bg-white shadow sm:rounded-lg divide-y divide-gray-200">
+    {% for n in notifications %}
+    <li class="{% if not n.is_read %}bg-blue-50/60{% endif %}">
+        <a href="{% url 'notifications:notification_open' n.id %}" class="block px-5 py-4 hover:bg-gray-50">
+            <div class="flex justify-between gap-3">
+                <div class="flex items-start gap-3">
+                    <span class="mt-1 h-2.5 w-2.5 rounded-full flex-shrink-0
+                        {% if n.priority == 'urgent' %}bg-red-500{% elif n.priority == 'high' %}bg-orange-500{% elif not n.is_read %}bg-blue-500{% else %}bg-gray-300{% endif %}"></span>
+                    <div>
+                        <div class="font-medium text-gray-900">{{ n.title }}</div>
+                        <div class="text-sm text-gray-600">{{ n.message }}</div>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-400 whitespace-nowrap">{{ n.created_at|date:"d/m/Y H:i" }}</div>
+            </div>
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+{% if page_obj.has_other_pages %}
+<div class="flex justify-end gap-2 mt-4 text-sm">
+    {% if page_obj.has_previous %}<a class="px-3 py-1 border rounded-lg bg-white" href="?page={{ page_obj.previous_page_number }}{% if unread_only %}&unread=1{% endif %}">Précédent</a>{% endif %}
+    {% if page_obj.has_next %}<a class="px-3 py-1 border rounded-lg bg-white" href="?page={{ page_obj.next_page_number }}{% if unread_only %}&unread=1{% endif %}">Suivant</a>{% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="bg-white shadow sm:rounded-lg p-10 text-center text-gray-500">Aucune notification{% if unread_only %} non lue{% endif %}.</div>
+{% endif %}
+{% endblock %}
