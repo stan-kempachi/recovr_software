@@ -26,8 +26,6 @@ variables:
 .python_job: &python_job
   image: "python:3.12-slim"
   <<: *poetry_cache
-  tags:
-    - self-hosted
   before_script:
     - pip install --upgrade pip poetry
     - poetry config virtualenvs.in-project true
@@ -47,30 +45,29 @@ lint:
 test:
   <<: *python_job
   stage: test
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
   variables:
+    POSTGRES_DB: recovr_test
+    POSTGRES_USER: recovr
+    POSTGRES_PASSWORD: recovr
     DJANGO_SETTINGS_MODULE: tests.config.settings_test
+    SECRET_KEY: ci-only-secret-key
+    DB_ENGINE: django.db.backends.postgresql
     DB_NAME: recovr_test
-    DB_USER: $STAGING_DB_USER
-    DB_PASSWORD: $STAGING_DB_PASSWORD
-    DB_HOST: $STAGING_DB_HOST
-    DB_PORT: $STAGING_DB_PORT
-  before_script:
-    - apt-get update && apt-get install -y postgresql-client
-    - pip install --upgrade pip poetry
-    - poetry config virtualenvs.in-project true
-    - poetry install
+    DB_USER: recovr
+    DB_PASSWORD: recovr
+    DB_HOST: postgres
+    DB_PORT: "5432"
   script:
-    - export PGPASSWORD="$DB_PASSWORD"
-    - psql -h $DB_HOST -U $DB_USER -d postgres -c "DROP DATABASE IF EXISTS recovr_test;"
-    - psql -h $DB_HOST -U $DB_USER -d postgres -c "CREATE DATABASE recovr_test;"
     - poetry run pytest --create-db --no-migrations
 
 # Update changelog stage
 update-changelog:
   stage: changelog
+  allow_failure: true
   image: "python:3.12-slim"
-  tags:
-    - self-hosted
   only:
     - master
   variables:
@@ -180,9 +177,8 @@ update-changelog:
 
 # Synchro Github
 sync-to-github:
-  tags:
-    - self-hosted
   stage: sync
+  allow_failure: true
   image: "python:3.12"
   only:
     - master
@@ -216,8 +212,6 @@ sync-to-github:
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
-  tags:
-    - self-hosted
   before_script:
     - apt-get update && apt-get install -y openssh-client rsync bash
     - mkdir -p ~/.ssh
