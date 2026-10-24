@@ -1,256 +1,127 @@
-# RecovR Software
+# RecovR
 
-Bienvenue dans le projet **RecovR Software** - une solution SaaS innovante pour le contrôle du processus de facturation et le suivi des statuts.
+SaaS de contrôle du processus de facturation et de suivi des statuts de factures (Chorus Pro, Ariba…).
 
-## À propos
+**Démo / instance de référence** : https://recovr.stan-aria.dev
 
-RecovR est une application web SaaS qui permet aux entreprises de :
-- Automatiser la vérification du respect du processus de facturation client
-- Centraliser le suivi des statuts de factures sur différentes plateformes
-- Réduire les délais de paiement et améliorer le recouvrement
+RecovR permet à une entreprise de :
+- vérifier que le processus de facturation client est respecté avant dépôt (PO, BL, PV, CRA…) ;
+- centraliser le suivi des statuts de factures sur plusieurs plateformes ;
+- réduire les délais de paiement et améliorer le recouvrement.
 
-[![Pipeline Status](https://gitlab.com/recovr/recovr_software/badges/master/pipeline.svg)](https://gitlab.com/recovr/recovr_software/-/pipelines)
-[![Version](https://img.shields.io/badge/version-1.7.1-blue.svg)](https://gitlab.com/recovr/recovr_software/-/tags)
+## Stack
 
-## Public cible
+| Couche | Choix |
+|---|---|
+| Backend | Django 4.2, Django REST Framework, django-allauth |
+| Frontend | Templates Django + Tailwind CSS (CDN) + DataTables |
+| Base de données | PostgreSQL 16 |
+| Serveur | gunicorn + whitenoise, derrière un reverse proxy (TLS Cloudflare) |
+| Qualité | black, isort, ruff, pre-commit, pytest / pytest-django |
+| Versionnement | python-semantic-release (conventional commits) |
 
-- Grandes entreprises et ETI avec flux de factures important
-- PME sous-traitantes avec contraintes de facturation spécifiques
-- Cabinets de gestion et recouvrement
+## Modules
 
-## Technologies utilisées
+| App Django | Rôle | État |
+|---|---|---|
+| `accounts` | Utilisateur personnalisé (login par email, rôles admin / user / readonly), entreprises, rattachement utilisateur ↔ entreprise | ✅ |
+| `dashboard` | Tableau de bord | ✅ |
+| `invoices` | Dépôt de documents (PDF), détail des factures, API JSON | ✅ |
+| `tasks` | Tâches, commentaires, assignation, règles de récurrence | ✅ |
+| `api_connectors` | Stockage des identifiants API des plateformes de facturation | modèles seulement |
+| `compliance` | Contrôle de conformité des factures | modèles seulement |
+| `notifications` | Notifications email / in-app | modèles seulement |
+| `reporting` | Exports et reporting | modèles seulement |
 
-- **Backend** : Django 4.2
-- **Frontend** : React.js + TailwindCSS
-- **Base de données** : PostgreSQL
-- **CI/CD** : GitLab CI/CD
-- **Déploiement** : Docker, Docker Compose
-- **Tests** : pytest
-- **Formatage et qualité du code** : Black, isort, pre-commit
+## Authentification
 
-## Fonctionnalités principales
+- Connexion par **email + mot de passe** (django-allauth, UI `allauth-ui`).
+- **Google OAuth2** : disponible mais désactivé tant que `GOOGLE_OAUTH2_CLIENT_ID` / `GOOGLE_OAUTH2_CLIENT_SECRET` ne sont pas définis. URL de callback à déclarer côté Google : `https://<hôte>/accounts/google/login/callback/`.
+- Vérification d'email : `mandatory` par défaut (`config/settings.py`), `none` dans `config/pi_settings.py` (pas de SMTP sur l'instance de référence).
 
-### Authentification & gestion utilisateurs
-- Connexion sécurisée (OAuth2 / SSO en option)
-- Gestion multi-comptes (Admin / Utilisateur / Lecture seule)
-- Stockage sécurisé des identifiants API pour diverses plateformes
+## Installation locale
 
-### Connexion aux plateformes
-- Intégration API avec différentes plateformes de facturation
-- Lecture des statuts et suivi des commandes
+Prérequis : Python 3.12+, Poetry, PostgreSQL.
 
-### Contrôle de conformité des factures
-- Vérification des documents requis (PO, BL, PV, CRA)
-- Alertes en cas de document manquant avant dépôt
-- Validation manuelle ou automatique
-
-### Suivi & alertes
-- Tableau de bord avec statut des factures (Soumise, Acceptée, En litige, Payée)
-- Notifications par email & dans l'application pour retards ou anomalies
-
-### Reporting
-- Export Excel/CSV des statuts et délais de paiement
-
-## Prérequis
-
-- Python 3.12 ou supérieur
-- Poetry
-- Docker et Docker Compose (pour le déploiement)
-- PostgreSQL (pour le développement local)
-- Node.js et npm (pour le frontend)
-
-## Installation
-
-1. Cloner le dépôt
 ```bash
-git clone git@gitlab.com:recovr/recovr_software.git
+git clone git@github.com:stan-kempachi/recovr_software.git
 cd recovr_software
-```
-
-2. Installer les dépendances
-```bash
 poetry install
-```
-
-3. Configurer les variables d'environnement
-```bash
-cp .env.example .env
-# Éditer le fichier .env avec vos configurations
-```
-
-4. Installer les hooks pre-commit
-```bash
+cp .env.example .env          # puis renseigner SECRET_KEY et DB_*
 poetry run pre-commit install
-```
-
-5. Exécuter les migrations
-```bash
 poetry run python manage.py migrate
-```
-
-## Développement
-
-### Lancement du serveur local
-
-```bash
+poetry run python manage.py createsuperuser
 poetry run python manage.py runserver
 ```
 
-### Exécution des tests
+Tests et qualité :
 
 ```bash
 poetry run pytest
-```
-
-### Vérification du style et de la qualité du code
-
-```bash
 poetry run pre-commit run --all-files
 ```
 
-## Environnements
+> Les tests utilisent `tests/config/settings_test.py` (base `recovr_test`). En CI, lancer `pytest --create-db --no-migrations` pour créer le schéma directement depuis les modèles.
 
-Le projet RecovR est configuré avec trois environnements distincts :
+## Fichiers de settings
 
-### Développement (Local)
-- Utilisé pour le développement quotidien
-- Base de données PostgreSQL configurée en local
-- Accessible via http://localhost:8000
-- Variables d'environnement configurées dans `.env`
+| Fichier | Usage |
+|---|---|
+| `config/settings.py` | Base commune (lit `.env` via python-dotenv) |
+| `config/pi_settings.py` | Déploiement auto-hébergé (instance de référence) : `DEBUG=False`, whitenoise, Google OAuth2 optionnel, hôte via `PUBLIC_HOST` |
+| `config/staging_settings.py` / `config/production_settings.py` | Anciens déploiements Docker (DigitalOcean) — conservés pour référence |
+| `tests/config/settings_test.py` | Tests |
 
-### Staging
-- Réplique de l'environnement de production
-- Utilisé pour tester les fonctionnalités avant déploiement en production
-- Base de données PostgreSQL
-- Accessible via https://staging.recovr.com (protégé par authentification)
-- Déploiement automatique lors des fusions dans la branche `master`
+Variables d'environnement principales : `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `DB_ENGINE`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `PUBLIC_HOST`, `GOOGLE_OAUTH2_CLIENT_ID`, `GOOGLE_OAUTH2_CLIENT_SECRET`.
 
-### Production
-- Environnement de production final
-- Base de données PostgreSQL optimisée
-- Accessible via https://recovr.com
-- Déploiement manuel après validation en staging
+## Déploiement (instance de référence)
 
-## Roadmap des fonctionnalités
-
-| Phase | Période | Fonctionnalités |
-|-------|---------|-----------------|
-| MVP | M0-M3 | Authentification, connexion aux plateformes, contrôle de conformité, suivi & alertes, reporting basique |
-| Évolution 1 | M4-M5 | Ajout de nouvelles plateformes de facturation |
-| Évolution 2 | M6 | IA détection anomalies : délais inhabituels, factures incomplètes, doublons |
-| Évolution 3 | M7-M8 | Reporting avancé : graphiques interactifs, KPI personnalisables |
-| Évolution 4 | M9 | API ouverte pour intégration avec ERP tiers |
-| Évolution 5 | M10 | Module recouvrement actif : génération lettres/mails relance automatique |
-| Évolution 6 | M11 | Gestion multi-clients : agences comptables et prestataires |
-| Évolution 7 | M12 | Tableau de bord mobile (PWA) |
-
-## CI/CD Pipeline
-
-Notre pipeline CI/CD automatise les étapes suivantes :
-
-1. **Lint** : Vérifie le style et la qualité du code
-2. **Test** : Exécute les tests unitaires et d'intégration
-3. **Changelog** : Met à jour automatiquement le CHANGELOG.md
-4. **Sync** : Synchronise le code avec GitHub
-5. **Deploy-Staging** : Déploie l'application en environnement de staging
-6. **Deploy-Production** : Déploie l'application en production (déclenchement manuel)
-
-## Déploiement avec Docker
-
-Le projet utilise Docker et Docker Compose pour les déploiements :
+Hébergement auto-géré, sans Docker pour l'application :
 
 ```bash
-# Démarrer tous les services
-docker-compose up -d
-
-# Démarrer uniquement l'environnement de staging
-docker-compose up -d web_staging nginx
-
-# Exécuter les migrations dans l'environnement de staging
-docker-compose exec web_staging python manage.py migrate
-
-# Créer un superutilisateur pour l'environnement de staging
-docker-compose exec web_staging python manage.py createsuperuser
-
-# Si vous avez des ports utilisé sur le serveur stopper et supprimer les dockers
-docker stop $(docker ps -q) && docker rm $(docker ps -aq)
+python3 -m venv .venv
+.venv/bin/pip install django djangorestframework django-cors-headers pillow python-dotenv \
+  psycopg2-binary gunicorn "django-allauth[socialaccount]" pyjwt cryptography \
+  django-allauth-ui pypdf2 whitenoise
+# .env avec DJANGO_SETTINGS_MODULE=config.pi_settings et les variables ci-dessus
+.venv/bin/python manage.py migrate --noinput
+.venv/bin/python manage.py collectstatic --noinput
+.venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8116 --workers 2 --timeout 120
 ```
 
-## Versionnement et CHANGELOG
+Un service systemd (`recovr.service`) lance gunicorn ; un reverse proxy route `recovr.stan-aria.dev` vers le port 8116 ; TLS terminé par Cloudflare (`SECURE_PROXY_SSL_HEADER` configuré). Endpoint de santé : `GET /health/`.
 
-Ce projet utilise [python-semantic-release](https://python-semantic-release.readthedocs.io/) pour gérer automatiquement les versions et le CHANGELOG.
+Les fichiers `Dockerfile`, `docker_compose.*.yml` et `.gitlab-ci.yml` correspondent à l'ancien déploiement DigitalOcean (staging/production via GitLab CI) et ne sont plus utilisés tels quels.
 
-### Conventions de message de commit
+## Conventions de commit
 
-Pour que vos modifications apparaissent correctement dans le CHANGELOG, suivez ces conventions :
+Le projet suit les *conventional commits* ; `python-semantic-release` en déduit la version et le `CHANGELOG.md`.
 
-| Type | Description | Exemple | Impact sur version |
-|------|-------------|---------|-------------------|
-| `feat` | Nouvelles fonctionnalités | `feat: ajouter la fonction de recherche` | Incrémente version mineure (0.x.0) |
-| `fix` | Corrections de bugs | `fix: résoudre le problème d'authentification` | Incrémente version de patch (0.0.x) |
-| `perf` | Améliorations de performance | `perf: optimiser les requêtes SQL` | Incrémente version de patch (0.0.x) |
-| `docs` | Documentation | `docs: mettre à jour le README` | Aucun changement de version |
-| `style` | Formatage, point-virgules, etc. | `style: formater selon PEP8` | Aucun changement de version |
-| `refactor` | Refactorisation du code | `refactor: simplifier la logique d'authentification` | Aucun changement de version |
-| `test` | Ajout ou modification de tests | `test: ajouter des tests pour API` | Aucun changement de version |
-| `build` | Système de build ou dépendances | `build: mettre à jour Django vers 4.2` | Aucun changement de version |
-| `ci` | Configuration CI | `ci: ajouter le déploiement automatique` | Aucun changement de version |
-| `chore` | Tâches diverses | `chore: nettoyer les fichiers temporaires` | Aucun changement de version |
-| `revert` | Annuler un commit précédent | `revert: revenir au commit abc123` | Aucun changement de version |
+| Type | Impact version |
+|---|---|
+| `feat` | mineure |
+| `fix`, `perf` | patch |
+| `docs`, `style`, `refactor`, `test`, `build`, `ci`, `chore`, `revert` | aucun |
 
-### Gestion des versions en local
-
-Pour tester les mises à jour du CHANGELOG sans pousser les changements :
 ```bash
 poetry run semantic-release version --no-push
 ```
 
-Pour forcer une version spécifique :
-```bash
-poetry run semantic-release version --patch --no-push  # Pour version 0.x.1
-poetry run semantic-release version --minor --no-push  # Pour version 0.2.0
-poetry run semantic-release version --major --no-push  # Pour version 1.0.0
-```
+## Roadmap
 
-### Récupérer les mises à jour du CHANGELOG depuis la CI
+- [x] Authentification, rôles, entreprises
+- [x] Dépôt et suivi de documents / factures
+- [x] Gestion de tâches
+- [ ] Google OAuth2 sur l'instance de référence
+- [ ] Connecteurs Chorus Pro / Ariba (`api_connectors`)
+- [ ] Contrôle de conformité automatique (`compliance`)
+- [ ] Notifications email / in-app (`notifications`)
+- [ ] Exports Excel/CSV, reporting (`reporting`)
+- [ ] Détection d'anomalies (délais inhabituels, doublons, factures incomplètes)
+- [ ] API ouverte pour intégration ERP
+- [ ] Module de relance / recouvrement
+- [ ] Multi-clients (cabinets comptables, prestataires)
 
-Si le CHANGELOG a été mis à jour par la CI dans GitLab :
-```bash
-git checkout master
-git pull origin master
-```
+## Licence
 
-### Fonctionnement
-
-- **En local** : Les modifications sont créées mais restent en local
-- **Dans la CI** : Les modifications sont automatiquement poussées vers GitLab et synchronisées avec GitHub
-
-## Architecture technique
-
-- **Front-end** : React.js + TailwindCSS
-- **Back-end** : Django
-- **Base de données** : PostgreSQL
-- **Intégrations API** : Diverses plateformes de facturation
-- **Hébergement** : AWS (EC2 + S3)
-- **Sécurité** : Chiffrement SSL/TLS, stockage sécurisé des données sensibles
-
-## Documentation API
-
-La documentation de l'API est disponible à l'URL `/api/docs/` lorsque le serveur est en cours d'exécution.
-
-## Contraintes & risques
-
-- Risque de changements d'API des plateformes externes
-- Nécessité de mise à jour continue pour assurer la compatibilité
-- Protection des données clients (RGPD strict)
-
-## Contribution
-
-1. Créez une branche à partir de `master`
-2. Effectuez vos modifications
-3. Soumettez une merge request vers `master`
-4. Assurez-vous que tous les tests passent dans la CI
-
-## Contact
-
-Pour toute question concernant le projet, veuillez contacter l'équipe de développement.
+Code source publié à titre de portfolio. Tous droits réservés — Stan Bruyère.
