@@ -16,7 +16,9 @@ ALLOWED_HOSTS = [PUBLIC_HOST, "localhost", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = [f"https://{PUBLIC_HOST}"]
 
 # Static servi par whitenoise (pas de nginx devant, juste le proxy ARIA)
-MIDDLEWARE = MIDDLEWARE[:1] + ["whitenoise.middleware.WhiteNoiseMiddleware"] + MIDDLEWARE[1:]
+MIDDLEWARE = (
+    MIDDLEWARE[:1] + ["whitenoise.middleware.WhiteNoiseMiddleware"] + MIDDLEWARE[1:]
+)
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
@@ -27,8 +29,12 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Google OAuth2 : bypass tant que les credentials ne sont pas fournis
-if not (os.getenv("GOOGLE_OAUTH2_CLIENT_ID") and os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")):
-    INSTALLED_APPS = [a for a in INSTALLED_APPS if a != "allauth.socialaccount.providers.google"]
+if not (
+    os.getenv("GOOGLE_OAUTH2_CLIENT_ID") and os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
+):
+    INSTALLED_APPS = [
+        a for a in INSTALLED_APPS if a != "allauth.socialaccount.providers.google"
+    ]
     SOCIALACCOUNT_PROVIDERS = {}
 
 # Pas de redirection SSL côté Django : TLS terminé par Cloudflare
