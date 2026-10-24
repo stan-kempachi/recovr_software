@@ -1,8 +1,8 @@
 # RecovR
 
-SaaS de contrôle du processus de facturation et de suivi des statuts de factures (Chorus Pro, Ariba…).
+Application web de pré-recouvrement : suivi des factures clients, contrôle des pièces justificatives avant dépôt, alertes de retard et exports. Les connecteurs vers les plateformes de facturation (Chorus Pro, Ariba) sont la prochaine étape de la feuille de route.
 
-**Démo / instance de référence** : https://recovr.stan-aria.dev
+**Démo** : https://recovr.stan-aria.dev (compte sur demande)
 
 RecovR permet à une entreprise de :
 - vérifier que le processus de facturation client est respecté avant dépôt (PO, BL, PV, CRA…) ;
@@ -26,12 +26,12 @@ RecovR permet à une entreprise de :
 |---|---|---|
 | `accounts` | Utilisateur personnalisé (login par email, rôles admin / user / readonly), entreprises, rattachement utilisateur ↔ entreprise | ✅ |
 | `dashboard` | Tableau de bord | ✅ |
-| `invoices` | Dépôt de documents (PDF), détail des factures, API JSON | ✅ |
+| `invoices` | Clients, factures (création, édition, filtres, statuts avec historique), documents justificatifs, conformité (facture + bon de commande + bon de livraison), jours de retard | ✅ |
 | `tasks` | Tâches, commentaires, assignation, règles de récurrence | ✅ |
-| `api_connectors` | Stockage des identifiants API des plateformes de facturation | modèles seulement |
-| `compliance` | Contrôle de conformité des factures | modèles seulement |
-| `notifications` | Notifications email / in-app | modèles seulement |
-| `reporting` | Exports et reporting | modèles seulement |
+| `notifications` | Notifications in-app (badge, page, marquage lu) ; contrôle quotidien `invoices_check` (retards, pièces manquantes) ; email prêt, non activé | ✅ |
+| `reporting` | Export CSV / Excel des factures avec les filtres de la liste | ✅ (exports) |
+| `compliance` | Règles de conformité paramétrables | modèles seulement — la règle « 3 pièces » est codée dans `invoices` |
+| `api_connectors` | Connecteurs Chorus Pro / Ariba (stockage des identifiants API) | modèles seulement |
 
 ## Authentification
 
@@ -68,30 +68,17 @@ poetry run pre-commit run --all-files
 | Fichier | Usage |
 |---|---|
 | `config/settings.py` | Base commune (lit `.env` via python-dotenv) |
-| `config/pi_settings.py` | Déploiement auto-hébergé (instance de référence) : `DEBUG=False`, whitenoise, Google OAuth2 optionnel, hôte via `PUBLIC_HOST` |
+| `config/pi_settings.py` | Déploiement de la démo : `DEBUG=False`, whitenoise, Google OAuth2 optionnel, hôte via `PUBLIC_HOST` |
 | `config/staging_settings.py` / `config/production_settings.py` | Anciens déploiements Docker (DigitalOcean) — conservés pour référence |
 | `tests/config/settings_test.py` | Tests |
 
 Variables d'environnement principales : `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `DB_ENGINE`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `PUBLIC_HOST`, `GOOGLE_OAUTH2_CLIENT_ID`, `GOOGLE_OAUTH2_CLIENT_SECRET`.
 
-## Déploiement (instance de référence)
+## Déploiement
 
-Hébergement auto-géré, sans Docker pour l'application :
+L'application se déploie comme n'importe quel projet Django : variables d'environnement (voir ci-dessus), `migrate`, `collectstatic`, puis gunicorn derrière un reverse proxy TLS. `config/pi_settings.py` est l'exemple utilisé pour la démo (whitenoise pour les statiques, Google OAuth2 optionnel). Endpoint de santé : `GET /health/`. Un timer système lance `manage.py invoices_check` chaque matin.
 
-```bash
-python3 -m venv .venv
-.venv/bin/pip install django djangorestframework django-cors-headers pillow python-dotenv \
-  psycopg2-binary gunicorn "django-allauth[socialaccount]" pyjwt cryptography \
-  django-allauth-ui pypdf2 whitenoise
-# .env avec DJANGO_SETTINGS_MODULE=config.pi_settings et les variables ci-dessus
-.venv/bin/python manage.py migrate --noinput
-.venv/bin/python manage.py collectstatic --noinput
-.venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8116 --workers 2 --timeout 120
-```
-
-Un service systemd (`recovr.service`) lance gunicorn ; un reverse proxy route `recovr.stan-aria.dev` vers le port 8116 ; TLS terminé par Cloudflare (`SECURE_PROXY_SSL_HEADER` configuré). Endpoint de santé : `GET /health/`.
-
-Les fichiers `Dockerfile`, `docker_compose.*.yml` et `.gitlab-ci.yml` correspondent à l'ancien déploiement DigitalOcean (staging/production via GitLab CI) et ne sont plus utilisés tels quels.
+Les fichiers `Dockerfile`, `docker_compose.*.yml` et `.gitlab-ci.yml` correspondent à l'ancien déploiement conteneurisé et ne sont plus utilisés tels quels.
 
 ## Conventions de commit
 
@@ -110,13 +97,16 @@ poetry run semantic-release version --no-push
 ## Roadmap
 
 - [x] Authentification, rôles, entreprises
-- [x] Dépôt et suivi de documents / factures
+- [x] Clients et factures : CRUD, statuts avec historique, filtres
+- [x] Pièces justificatives et conformité (facture / bon de commande / bon de livraison)
+- [x] Alertes in-app : retards et pièces manquantes (contrôle quotidien)
+- [x] Exports CSV / Excel
 - [x] Gestion de tâches
-- [ ] Google OAuth2 sur l'instance de référence
+- [ ] Google OAuth2 sur la démo
+- [ ] Envoi des alertes par email (SMTP)
+- [ ] Gestion de l'entreprise et des utilisateurs depuis l'interface
 - [ ] Connecteurs Chorus Pro / Ariba (`api_connectors`)
-- [ ] Contrôle de conformité automatique (`compliance`)
-- [ ] Notifications email / in-app (`notifications`)
-- [ ] Exports Excel/CSV, reporting (`reporting`)
+- [ ] Règles de conformité paramétrables (`compliance`)
 - [ ] Détection d'anomalies (délais inhabituels, doublons, factures incomplètes)
 - [ ] API ouverte pour intégration ERP
 - [ ] Module de relance / recouvrement
