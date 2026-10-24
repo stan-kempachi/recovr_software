@@ -232,6 +232,8 @@ sync-to-github:
 # ---------------------------
 deploy-staging:
   <<: *deploy_job
+  when: manual
+  allow_failure: true
   stage: deploy-staging
   script:
     # Créer les répertoires nécessaires sur le serveur
@@ -281,6 +283,8 @@ deploy-staging:
 # ---------------------------
 deploy-production:
   <<: *deploy_job
+  when: manual
+  allow_failure: true
   stage: deploy-production
   script:
     # Créer les répertoires nécessaires sur le serveur
@@ -324,13 +328,14 @@ deploy-production:
       "
   only:
     - master
-  when: manual
 
 # ---------------------------
 # Déploiement Proxy Nginx
 # ---------------------------
 deploy-proxy:
   <<: *deploy_job
+  when: manual
+  allow_failure: true
   stage: deploy-proxy
   script:
     - |
@@ -349,6 +354,5 @@ deploy-proxy:
       '
   only:
     - master
-  when: manual
   environment:
     name: proxy
