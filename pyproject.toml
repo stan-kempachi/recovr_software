@@ -2,7 +2,7 @@
 name = "core"
 version = "1.4.0"
 description = "Projet généré avec Cookiecutter + Poetry"
-authors = ["Stan Bruyere <adm.standev@gmail.com>"]
+authors = ["Stan Bruyère <stan@karakuri.studio>"]
 packages = [{ include = "core", from = "." }]
 
 [tool.poetry.dependencies]
