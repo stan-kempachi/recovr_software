@@ -114,4 +114,4 @@ poetry run semantic-release version --no-push
 
 ## Licence
 
-Code source publié à titre de portfolio. Tous droits réservés — Stan Bruyère.
+Code source publié à titre de portfolio. Tous droits réservés — Karakuri Studio.
