@@ -79,12 +79,14 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     # Django-allauth
+    "allauth_ui",
     "django.contrib.sites",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
-    "allauth_ui",
+    "widget_tweaks",
+    "slippers",
 ]
 
 # Middleware
@@ -105,7 +107,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -170,6 +172,7 @@ LOGOUT_REDIRECT_URL = "/"
 # Allauth
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_ADAPTER = "accounts.adapters.NoSignupAccountAdapter"  # inscription fermee - compte sur demande
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_UNIQUE_EMAIL = True
 
