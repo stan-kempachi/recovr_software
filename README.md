@@ -9,7 +9,7 @@ Application web de pré-recouvrement : suivi des factures clients, contrôle des
 
 RecovR permet à une entreprise de :
 - vérifier que le processus de facturation client est respecté avant dépôt (PO, BL, PV, CRA…) ;
-- centraliser le suivi des statuts de factures sur plusieurs plateformes ;
+- suivre les factures, leurs statuts et leurs retards au même endroit ;
 - réduire les délais de paiement et améliorer le recouvrement.
 
 ![Liste des factures](docs/images/factures.png)
